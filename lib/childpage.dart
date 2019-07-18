@@ -30,7 +30,10 @@ class ChildPageState extends LifeState<ChildPage> {
     Pop.showLoading(context);
     try {
       FilePathRes filePathRes = await KAPI.getFilePathList(widget.childPath);
-      _fileFolderList = filePathRes.folderList;
+      setState(() {
+        _fileFolderList = filePathRes.folderList;
+      });
+
     }catch(e){
       Pop.showToast(context, e.message);
     }finally{
@@ -52,7 +55,7 @@ class ChildPageState extends LifeState<ChildPage> {
             itemBuilder: (BuildContext context, int index) {
                   return FolderItem(_fileFolderList[index]);
             },
-//                itemCount: _fileList.length,
+            itemCount: _fileFolderList.length,
           )
         ],
       )),
