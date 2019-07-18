@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kodproject/pop.dart';
 import 'package:toast/toast.dart';
 import 'childpage.dart';
+import 'custom/KBar.dart';
 import 'httpmanager.dart';
 import 'life/life_state.dart';
 import 'model/file_tree_res_entity.dart';
@@ -42,9 +43,7 @@ class _HomePageState extends LifeState<HomePage>  {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
+      appBar: KAppBar.getSettingBar(widget.title),
       body: Center(
           child: Column(
         mainAxisSize: MainAxisSize.max,

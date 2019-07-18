@@ -1,23 +1,44 @@
 import 'package:flutter/material.dart';
 import 'home_list.dart';
+import 'life/life_state.dart';
 import 'loginpage.dart';
 import 'KData.dart';
 import 'pop.dart';
 
 void main() => runApp(MyApp());
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() {
+    return AppState();
+  }
+}
+
+class AppState extends LifeState<MyApp> {
+  bool isOk = false;
+  StatefulWidget _widget = Image(image: AssetImage("images/woqiyounai.jpg"));
+
+  void initData() async {
+    await GlobalData.init();
+    setState(() {
+      if (GlobalData.instance.userToken != null &&
+          !GlobalData.instance.userToken.isEmpty) {
+        _widget = HomePage();
+      } else {
+        _widget = LoginPage();
+      }
+    });
+  }
+
+  @override
+  void onStart() {
+    super.onStart();
+    initData();
+  }
+
+
   @override
   Widget build(BuildContext context) {
-    GlobalData.init();
-    StatefulWidget _widget;
-    if (GlobalData.instance.userToken != null &&
-        !GlobalData.instance.userToken.isEmpty) {
-      _widget = HomePage();
-    } else {
-      _widget = LoginPage();
-    }
-
     return MaterialApp(
       title: 'Kodclould',
       theme: ThemeData(

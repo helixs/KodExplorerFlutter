@@ -9,9 +9,9 @@ abstract class LifeState<T extends StatefulWidget> extends State<T>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       onStart();
     });
-    WidgetsBinding.instance.addPersistentFrameCallback((_){
-     //每帧
-    });
+//    WidgetsBinding.instance.addPersistentFrameCallback((_){
+//     //每帧
+//    });
 
   }
 

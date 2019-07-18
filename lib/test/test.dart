@@ -34,10 +34,25 @@ class C extends Person with B,A{
 }
 
 void main(){
-  var c=new C('张三',20);
-  c.printInfo();
-   c.printB();
-   c.printA();
-   print(c.info);
-  c.run();
+//  var c=new C('张三',20);
+//  c.printInfo();
+//   c.printB();
+//   c.printA();
+//   print(c.info);
+//  c.run();
+
+var bbq = new BBQS("");
+
+}
+
+class BBQ{
+  BBQ(String qq){
+    print("BBQ");
+  }
+}
+class BBQS extends BBQ{
+  BBQS(String qq) : super(qq){
+    print("BBQS");
+  }
+  
 }
