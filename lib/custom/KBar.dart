@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 
+import '../setting.dart';
+
 class KAppBar{
   final String titleName;
 
   KAppBar(this.titleName);
-  static AppBar getSettingBar(String titleName,{VoidCallback settingPress,BuildContext buildContext}){
+  static AppBar getSettingBar(BuildContext buildContext,String titleName,{VoidCallback settingPress}){
     if(settingPress==null&&buildContext!=null){
       settingPress = (){
-        //setting
+        Navigator.push(buildContext, MaterialPageRoute(builder: (context){
+          return SettingPage();
+        }));
       };
     }
     return AppBar(

@@ -43,7 +43,7 @@ class _HomePageState extends LifeState<HomePage>  {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: KAppBar.getSettingBar(widget.title),
+      appBar: KAppBar.getSettingBar(context,widget.title),
       body: Center(
           child: Column(
         mainAxisSize: MainAxisSize.max,
