@@ -4,7 +4,8 @@
 
 ## 安装准备
 
-基于可道云https://kodcloud.com/ 的第三方客户端，需要部署你的可道云服务器才可使用，登录需要服务器关闭验证码登录，可道云暂未适配方案
+基于可道云https://kodcloud.com/ 的第三方客户端，需要部署你的可道云服务器才可使用，登录需要服务器关闭验证码登录，可道云暂未适配方案。
+地址就是你配置可到云的地址。
 
 目前仅实现了登录退出功能和浏览文件列表的功能，后面会逐步更新</br>
 
@@ -15,5 +16,13 @@
 ## 已知问题
 
 由于可道云文档的错误信息多基于html格式返回，而且并没有返回详细的错误信息，如果多次出错很可能是accessToken过期，需要进入设置重新登录
+
+## 样例
+
+![image](https://github.com/helixs/KodExplorerFlutter/screenshot/sc1.jpg) ![image](https://github.com/helixs/KodExplorerFlutter/screenshot/sc2.jpg)
+
+![image](https://github.com/helixs/KodExplorerFlutter/screenshot/sc3.jpg) ![image](https://github.com/helixs/KodExplorerFlutter/screenshot/sc4.jpg)
+
+![image](https://github.com/helixs/KodExplorerFlutter/screenshot/sc5.jpg) ![image](https://github.com/helixs/KodExplorerFlutter/screenshot/sc6.jpg)
 
 ## 如果有疑问请联系yokouv@gmail.com
