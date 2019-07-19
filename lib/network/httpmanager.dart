@@ -1,20 +1,24 @@
+import 'dart:io';
+import 'dart:core';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:kodproject/model/file_path_info_entity.dart';
 import 'package:kodproject/tools/Log.dart';
-import 'KData.dart';
+import '../KData.dart';
 import 'package:kodproject/model/res_model.dart';
 import 'package:kodproject/model/file_tree_res_entity.dart';
 import 'package:kodproject/model/file_path_res_entity.dart';
 
-class KHttpManager {
+class _KHttpManager {
   // 工厂模式
-  factory KHttpManager() => _getInstance();
+  factory _KHttpManager() => _getInstance();
 
-  static KHttpManager get instance => _getInstance();
-  static KHttpManager _instance;
+  static _KHttpManager get instance => _getInstance();
+  static _KHttpManager _instance;
   Dio dio;
 
-  KHttpManager._internal() {
+  _KHttpManager._internal() {
     dio = new Dio();
     // 配置dio实例
     dio.options.connectTimeout = 30000; //5s
@@ -32,29 +36,40 @@ class KHttpManager {
       ..add(KInterceptor.getLogInterceptor());
   }
 
-  static KHttpManager _getInstance() {
+  static _KHttpManager _getInstance() {
     if (_instance == null) {
-      _instance = new KHttpManager._internal();
+      _instance = new _KHttpManager._internal();
     }
     return _instance;
   }
 
   static get<T>(String path,
-      {Map<String, dynamic> queryMap, RequestOptions options}) async {
-    return await KHttpManager.instance.request<T>(
+      {Map<String, dynamic> queryMap, Options options}) async {
+    return await _KHttpManager.instance.request<T>(
         path, _checkOptions("GET", options)..queryParameters = queryMap);
   }
 
   static post<T>(String path,
-      {Map queryMap, dynamic data, RequestOptions options}) async {
-    return await KHttpManager.instance.request(
+      {Map queryMap, dynamic data, Options options}) async {
+    return await _KHttpManager.instance.request(
         path,
         _checkOptions("POST", options)
           ..queryParameters = queryMap
           ..data = data);
   }
 
-  request<T>(path, RequestOptions option, {body}) async {
+  static postFormUrlencoded<T>(String path,
+      {Map queryMap, dynamic data, Options options}) async {
+    if(options==null){
+      options =RequestOptions();
+    }
+//    options.headers[HttpHeaders.contentTypeHeader] = "application/x-www-form-urlencoded";
+    options.contentType = ContentType.parse("application/x-www-form-urlencoded");
+    return await post<T>(path,
+        queryMap: queryMap, data: data, options: options);
+  }
+
+  request<T>(path, Options option, {body}) async {
     Response response;
     try {
       response = await dio.request(path, data: body, options: option);
@@ -129,6 +144,7 @@ class KInterceptor {
       Log.v("\n================== 请求数据 ==========================");
       Log.v("url = ${options.uri.toString()}");
       Log.v("headers = ${options.headers}");
+      Log.v("contentType = ${options.contentType}");
       Log.v("params = ${options.data}");
     }, onResponse: (Response response) {
       Log.v("\n================== 响应数据 ==========================");
@@ -147,10 +163,9 @@ class KInterceptor {
 }
 
 class KAPI {
-
   //登录
   static Future<String> login(String username, String password) async {
-    var result = await KHttpManager.get<String>("/?user/loginSubmit",
+    var result = await _KHttpManager.get<String>("/?user/loginSubmit",
         queryMap: {
           "isAjax": "1",
           "getToken": "1",
@@ -160,8 +175,9 @@ class KAPI {
     return result as String;
   }
 
+  //获取初始文件目录树
   static Future<List<FileTreeResData>> getFileTree() async {
-    var result = await KHttpManager.get<List<FileTreeResData>>(
+    var result = await _KHttpManager.get<List<FileTreeResData>>(
         "/?explorer/treeList",
         queryMap: {
           "app": "explorer",
@@ -173,12 +189,27 @@ class KAPI {
     });
     return items;
   }
-  static Future<FilePathRes> getFilePathList(String path) async{
-    var result = await KHttpManager.get<FilePathRes>("/?explorer/pathList",queryMap: {
-      "path":path,
+
+  //根据文件路径获取文件列表
+  static Future<FilePathRes> getFilePathList(String path) async {
+    var result =
+        await _KHttpManager.get<FilePathRes>("/?explorer/pathList", queryMap: {
+      "path": path,
       "app": "explorer",
     });
     return FilePathRes.fromJson(result);
+  }
+
+  //根据 文件夹/文件 获取其信息
+  static Future<FilePathInfoRes> getFilePathInfo(
+      dataArr) async {
+    var map = Map<String, List<Map<String, String>>>();
+    map["dataArr"] = dataArr;
+    var result = await _KHttpManager.postFormUrlencoded<FilePathInfoRes>(
+        "/?explorer/pathInfo",
+        data: map);
+
+    return FilePathInfoRes.fromJson(result);
   }
 }
 

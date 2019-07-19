@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:toast/toast.dart';
 import 'model/file_path_res_entity.dart';
 import 'pop.dart';
-import 'httpmanager.dart';
+import 'package:kodproject/network/httpmanager.dart';
 
 import 'life/life_state.dart';
 
@@ -109,6 +109,12 @@ class FolderItem extends StatelessWidget {
 }
 
 class FileItem extends StatelessWidget {
+  void _getFileInfo(String path) async {
+    var currentItem = {"type":"file","path":path};
+    var dataArr = [currentItem];
+    KAPI.getFilePathInfo(dataArr);
+  }
+
   const FileItem(this._item);
 
   final FilePathResFilelist _item;
@@ -116,25 +122,28 @@ class FileItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
+        onTap: () {
+          _getFileInfo(_item.path);
+        },
         child: Row(
-      mainAxisSize: MainAxisSize.max,
-      children: <Widget>[
-        Container(
-            padding: EdgeInsets.all(20),
-            child: Icon(
-              Icons.book,
-              color: Colors.blue[500],
-            )),
-        Expanded(
-          child: Text(
-            _item.name,
-            style: TextStyle(
-                fontSize: 16.0,
-                color: Colors.black,
-                fontWeight: FontWeight.w600),
-          ),
-        )
-      ],
-    ));
+          mainAxisSize: MainAxisSize.max,
+          children: <Widget>[
+            Container(
+                padding: EdgeInsets.all(20),
+                child: Icon(
+                  Icons.book,
+                  color: Colors.blue[500],
+                )),
+            Expanded(
+              child: Text(
+                _item.name,
+                style: TextStyle(
+                    fontSize: 16.0,
+                    color: Colors.black,
+                    fontWeight: FontWeight.w600),
+              ),
+            )
+          ],
+        ));
   }
 }
