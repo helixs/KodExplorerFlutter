@@ -19,10 +19,7 @@
 
 ## 样例
 
-![image](https://github.com/helixs/KodExplorerFlutter/tree/master/screenshot/sc1.jpg) ![image](https://github.com/helixs/KodExplorerFlutter/tree/master/screenshot/sc2.jpg)
+<img src="https://github.com/helixs/KodExplorerFlutter/blob/master/screenshot/sc1.jpg?raw=true"  width="360" height="640" /><img src="https://github.com/helixs/KodExplorerFlutter/blob/master/screenshot/sc2.jpg?raw=true"  width="360" height="640" /><img src="https://github.com/helixs/KodExplorerFlutter/blob/master/screenshot/sc3.jpg?raw=true"  width="360" height="640" /><img src="https://github.com/helixs/KodExplorerFlutter/blob/master/screenshot/sc4.jpg?raw=true"  width="360" height="640" /><img src="https://github.com/helixs/KodExplorerFlutter/blob/master/screenshot/sc5.jpg?raw=true"  width="360" height="640" /><img src="https://github.com/helixs/KodExplorerFlutter/blob/master/screenshot/sc6.jpg?raw=true"  width="360" height="640" />
 
-![image](https://github.com/helixs/KodExplorerFlutter/tree/master/screenshot/sc3.jpg) ![image](https://github.com/helixs/KodExplorerFlutter/tree/master/screenshot/sc4.jpg)
-
-![image](https://github.com/helixs/KodExplorerFlutter/tree/master/screenshot/sc5.jpg) ![image](https://github.com/helixs/KodExplorerFlutter/tree/master/screenshot/sc6.jpg)
 
 ## 如果有疑问请联系yokouv@gmail.com
