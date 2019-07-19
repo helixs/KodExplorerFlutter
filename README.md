@@ -19,10 +19,10 @@
 
 ## 样例
 
-![image](https://github.com/helixs/KodExplorerFlutter/screenshot/sc1.jpg) ![image](https://github.com/helixs/KodExplorerFlutter/screenshot/sc2.jpg)
+![image](https://github.com/helixs/KodExplorerFlutter/tree/master/screenshot/sc1.jpg) ![image](https://github.com/helixs/KodExplorerFlutter/tree/master/screenshot/sc2.jpg)
 
-![image](https://github.com/helixs/KodExplorerFlutter/screenshot/sc3.jpg) ![image](https://github.com/helixs/KodExplorerFlutter/screenshot/sc4.jpg)
+![image](https://github.com/helixs/KodExplorerFlutter/tree/master/screenshot/sc3.jpg) ![image](https://github.com/helixs/KodExplorerFlutter/tree/master/screenshot/sc4.jpg)
 
-![image](https://github.com/helixs/KodExplorerFlutter/screenshot/sc5.jpg) ![image](https://github.com/helixs/KodExplorerFlutter/screenshot/sc6.jpg)
+![image](https://github.com/helixs/KodExplorerFlutter/tree/master/screenshot/sc5.jpg) ![image](https://github.com/helixs/KodExplorerFlutter/tree/master/screenshot/sc6.jpg)
 
 ## 如果有疑问请联系yokouv@gmail.com
