@@ -17,6 +17,8 @@
 
 由于可道云文档的错误信息多基于html格式返回，而且并没有返回详细的错误信息，如果多次出错很可能是accessToken过期，需要进入设置重新登录
 
+现在还是开发阶段，暂不提供安装包，有兴趣的可以自己试试
+
 ## 样例
 
 <img src="https://github.com/helixs/KodExplorerFlutter/blob/master/screenshot/sc1.jpg?raw=true"  width="360" height="660" /><img src="https://github.com/helixs/KodExplorerFlutter/blob/master/screenshot/sc2.jpg?raw=true"  width="360" height="660" /><img src="https://github.com/helixs/KodExplorerFlutter/blob/master/screenshot/sc3.jpg?raw=true"  width="360" height="660" /><img src="https://github.com/helixs/KodExplorerFlutter/blob/master/screenshot/sc4.jpg?raw=true"  width="360" height="660" /><img src="https://github.com/helixs/KodExplorerFlutter/blob/master/screenshot/sc5.jpg?raw=true"  width="360" height="660" /><img src="https://github.com/helixs/KodExplorerFlutter/blob/master/screenshot/sc6.jpg?raw=true"  width="360" height="660" />
