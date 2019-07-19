@@ -20,26 +20,30 @@ class ChildPage extends StatefulWidget {
 }
 
 class ChildPageState extends LifeState<ChildPage> {
-  List<FilePathResFolderlist> _fileFolderList = [];
+  List<FilePathResFolderlist> _folderList = [];
+  List<FilePathResFilelist> _fileList = [];
+
   @override
   void onStart() {
     super.onStart();
     _getFilePathData();
   }
-  void _getFilePathData() async{
+
+  void _getFilePathData() async {
     Pop.showLoading(context);
     try {
       FilePathRes filePathRes = await KAPI.getFilePathList(widget.childPath);
       setState(() {
-        _fileFolderList = filePathRes.folderList;
+        _folderList = filePathRes.folderList;
+        _fileList = filePathRes.fileList;
       });
-
-    }catch(e){
+    } catch (e) {
       Pop.showToast(context, e.message);
-    }finally{
+    } finally {
       Pop.dissLoading(context);
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,13 +54,18 @@ class ChildPageState extends LifeState<ChildPage> {
           child: Column(
         mainAxisSize: MainAxisSize.max,
         children: <Widget>[
-          ListView.builder(
+          Expanded(
+              child: ListView.builder(
             shrinkWrap: true,
             itemBuilder: (BuildContext context, int index) {
-                  return FolderItem(_fileFolderList[index]);
+              if (index < _folderList.length) {
+                return FolderItem(_folderList[index]);
+              } else {
+                return FileItem(_fileList[index - _folderList.length]);
+              }
             },
-            itemCount: _fileFolderList.length,
-          )
+            itemCount: _folderList.length + _fileList.length,
+          ))
         ],
       )),
     );
@@ -70,18 +79,62 @@ class FolderItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(_item.name,style:TextStyle(color:Colors.black,fontWeight: FontWeight.w600) ,),
-      leading: new Icon(
+    return InkWell(
+        onTap: () {
+          Navigator.push(context, MaterialPageRoute(builder: (context) {
+            return ChildPage(childName: _item.name, childPath: _item.path);
+          }));
+        },
+        child: Row(
+          mainAxisSize: MainAxisSize.max,
+          children: <Widget>[
+            Container(
+                padding: EdgeInsets.all(20),
+                child: Icon(
+                  Icons.folder,
+                  color: Colors.blue[500],
+                )),
+            Expanded(
+              child: Text(
+                _item.name,
+                style: TextStyle(
+                    fontSize: 16.0,
+                    color: Colors.black,
+                    fontWeight: FontWeight.w600),
+              ),
+            )
+          ],
+        ));
+  }
+}
 
-        Icons.folder,
-        color: Colors.blue[500],
-      ),
-      onTap: (){
-        Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return ChildPage(childName: _item.name,childPath:_item.path);
-        }));
-      },
-    );
+class FileItem extends StatelessWidget {
+  const FileItem(this._item);
+
+  final FilePathResFilelist _item;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+        child: Row(
+      mainAxisSize: MainAxisSize.max,
+      children: <Widget>[
+        Container(
+            padding: EdgeInsets.all(20),
+            child: Icon(
+              Icons.book,
+              color: Colors.blue[500],
+            )),
+        Expanded(
+          child: Text(
+            _item.name,
+            style: TextStyle(
+                fontSize: 16.0,
+                color: Colors.black,
+                fontWeight: FontWeight.w600),
+          ),
+        )
+      ],
+    ));
   }
 }
