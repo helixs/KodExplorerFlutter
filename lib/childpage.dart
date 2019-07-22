@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:toast/toast.dart';
+import 'custom/file_info_pop.dart';
 import 'model/file_path_res_entity.dart';
 import 'pop.dart';
 import 'package:kodproject/network/httpmanager.dart';
@@ -109,10 +110,18 @@ class FolderItem extends StatelessWidget {
 }
 
 class FileItem extends StatelessWidget {
-  void _getFileInfo(String path) async {
-    var currentItem = {"type":"file","path":path};
+  void _getFileInfo(BuildContext context, String path) async {
+    var currentItem = {"type": "file", "path": path};
     var dataArr = [currentItem];
-    KAPI.getFilePathInfo(dataArr);
+    try {
+      Pop.showLoading(context);
+      var fileInfo = await KAPI.getFilePathInfo(dataArr);
+      Pop.dissLoading(context);
+      FileInfoPop.showFileInfoDialog(context, fileInfo);
+    } catch (e) {
+      Pop.dissLoading(context);
+      Pop.showToast(context, e.message);
+    }
   }
 
   const FileItem(this._item);
@@ -123,7 +132,7 @@ class FileItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
         onTap: () {
-          _getFileInfo(_item.path);
+          _getFileInfo(context, _item.path);
         },
         child: Row(
           mainAxisSize: MainAxisSize.max,

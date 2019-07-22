@@ -1,4 +1,8 @@
+
 class FilePathInfoRes {
+	static const KB = 1024;
+	static const MB = 1024*1024;
+	static const GB = 1024*1024*1024;
 	//扩展名
 	String ext;
 	////最后访问时间
@@ -56,4 +60,57 @@ class FilePathInfoRes {
 		data['isWriteable'] = this.isWriteable;
 		return data;
 	}
+		List<FileKVInfo> toItemDesc() {
+		List<FileKVInfo> kvs= [];
+//		final Map<String, dynamic> data = new Map<String, dynamic>();
+//		data['ext'] = this.ext;
+		kvs.add(FileKVInfo('名称',this.name));
+		kvs.add(FileKVInfo('外链地址\n(长按复制)',this.downloadPath,isDownloadUrl: true));
+		if(size<KB){
+			kvs.add(FileKVInfo('大小',"${this.size}Bytes"));
+		}else if(size>=KB&&size<MB){
+			kvs.add(FileKVInfo('大小',"${(this.size/KB).toStringAsFixed(2)}Kb"));
+		}else if(size>=MB&&size<GB){
+			kvs.add(FileKVInfo('大小',"${(this.size/MB).toStringAsFixed(2)}Mb"));
+		}else{
+//			data['大小'] = "${this.size/MB}Gb";
+			kvs.add(FileKVInfo('大小',"${(this.size/GB).toStringAsFixed(2)}Gb"));
+		}
+//		data['创建时间'] = this.ctime.toString();
+
+			kvs.add(FileKVInfo('创建时间',_getTime(this.ctime)));
+			kvs.add(FileKVInfo('修改时间',_getTime(this.mtime)));
+			kvs.add(FileKVInfo('最后访问',_getTime(this.atime)));
+			kvs.add(FileKVInfo('文件md5',this.fileMd5));
+			kvs.add(FileKVInfo('文件路径',this.path.toString()));
+//		data['修改时间'] = this.mtime.toString();
+//		data['最后访问时间'] = this.atime.toString();
+//		data['文件md5'] = this.fileMd5;
+//		data['type'] = this.type;
+
+//		data['mode'] = this.mode;
+//		data['文件路径'] = this.path;
+
+//		data['name'] = this.name;
+
+//		data['isReadable'] = this.isReadable;
+//		data['isWriteable'] = this.isWriteable;
+//		data['isWriteable'] = this.isWriteable;
+		return kvs;
+	}
+	String _getTime(int t) {
+		var time=DateTime.fromMillisecondsSinceEpoch(t*1000);
+		return "${time.year}/${_twoDigits(time.month)}/${_twoDigits(time.day)} ${_twoDigits(time.hour)}:${_twoDigits(time.minute)}:${_twoDigits(time.second)}";
+	}
+	static String _twoDigits(int n) {
+		if (n >= 10) return "$n";
+		return "0$n";
+	}
+}
+class FileKVInfo{
+	bool isDownloadUrl;
+	final String key;
+	final String value;
+
+  FileKVInfo(this.key, this.value,{this.isDownloadUrl=false});
 }

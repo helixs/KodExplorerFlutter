@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:core';
+import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -203,11 +204,16 @@ class KAPI {
   //根据 文件夹/文件 获取其信息
   static Future<FilePathInfoRes> getFilePathInfo(
       dataArr) async {
-    var map = Map<String, List<Map<String, String>>>();
-    map["dataArr"] = dataArr;
+//    var map = Map<String, List<Map<String, String>>>();
+
+//    map["dataArr"] = dataArr;
+//    print();
+//    print(Uri.encodeQueryComponent(json.encode(map)));
+    String encodeQuery = "dataArr=${Uri.encodeQueryComponent(json.encode(dataArr))}";
+//    print(encodeQuery);
     var result = await _KHttpManager.postFormUrlencoded<FilePathInfoRes>(
         "/?explorer/pathInfo",
-        data: map);
+        data:  encodeQuery);
 
     return FilePathInfoRes.fromJson(result);
   }
