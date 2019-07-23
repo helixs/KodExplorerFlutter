@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:toast/toast.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'custom/file_info_pop.dart';
 import 'model/file_path_res_entity.dart';
 import 'pop.dart';
@@ -110,17 +111,30 @@ class FolderItem extends StatelessWidget {
 }
 
 class FileItem extends StatelessWidget {
-  void _getFileInfo(BuildContext context, String path) async {
+
+  void _getFileInfo(BuildContext context, String path,{bool isOpen=false}) async {
     var currentItem = {"type": "file", "path": path};
     var dataArr = [currentItem];
     try {
       Pop.showLoading(context);
       var fileInfo = await KAPI.getFilePathInfo(dataArr);
       Pop.dissLoading(context);
-      FileInfoPop.showFileInfoDialog(context, fileInfo);
+      if(isOpen){
+        _launchURL(fileInfo.downloadPath);
+      }else{
+        FileInfoPop.showFileInfoDialog(context, fileInfo);
+      }
+
     } catch (e) {
       Pop.dissLoading(context);
       Pop.showToast(context, e.message);
+    }
+  }
+  _launchURL(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
     }
   }
 
@@ -131,6 +145,9 @@ class FileItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
+        onLongPress:(){
+          _getFileInfo(context, _item.path,isOpen: true);
+        } ,
         onTap: () {
           _getFileInfo(context, _item.path);
         },
