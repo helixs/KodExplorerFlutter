@@ -3,6 +3,8 @@ import 'package:dio/dio.dart';
 import 'home_list.dart';
 import 'package:kodproject/network/httpmanager.dart';
 import 'KData.dart';
+import 'life/life_state.dart';
+import 'network/net_work_catch.dart';
 import 'pop.dart';
 import 'package:toast/toast.dart';
 
@@ -15,7 +17,7 @@ class LoginPage extends StatefulWidget {
   State<StatefulWidget> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends LifeState<LoginPage> {
   //地址
   TextEditingController _addressController = new TextEditingController();
 
@@ -28,34 +30,32 @@ class _LoginPageState extends State<LoginPage> {
   GlobalKey _formKey = new GlobalKey<FormState>();
   String errorMsg = "";
 
-  void _validationUserInfo() async {
+  _validationUserInfo() async {
     String address = _addressController.text;
     String username = _usernameController.text;
     String passwd = _passwdController.text;
     Pop.showLoading(context);
     await KStorage.setAddress(address);
-    try {
-      String token =(await KAPI.login(username, passwd));
-      await KStorage.setToken(token);
-      Pop.dissLoading(context);
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context){
-        return HomePage();
-      }));
-    } catch(e){
-      Toast.show(e.message,context, duration: Toast.LENGTH_LONG, gravity:  Toast.BOTTOM);
-      Pop.dissLoading(context);
-    }finally{
 
-    }
+    return (await KAPI.login(username, passwd));
   }
+
+  void _loadSuccess(String token) async {
+    await KStorage.setToken(token);
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+      return HomePage();
+    }));
+  }
+
   @override
   void initState() {
-    KStorage.getKodAddress().then((address){
-      _addressController.text = address??"";
+    KStorage.getKodAddress().then((address) {
+      _addressController.text = address ?? "";
     });
     KStorage.setToken("");
     super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -123,7 +123,8 @@ class _LoginPageState extends State<LoginPage> {
                         onPressed: () {
                           if ((_formKey.currentState as FormState).validate()) {
                             //验证通过提交数据
-                            _validationUserInfo();
+                            requestNetWorkOfState(_validationUserInfo, this,
+                                successFun: _loadSuccess, isShowLoading: true);
                           }
                         },
                       ),

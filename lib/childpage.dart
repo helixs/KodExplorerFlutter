@@ -3,6 +3,7 @@ import 'package:toast/toast.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'custom/file_info_pop.dart';
 import 'model/file_path_res_entity.dart';
+import 'network/net_work_catch.dart';
 import 'pop.dart';
 import 'package:kodproject/network/httpmanager.dart';
 
@@ -28,23 +29,19 @@ class ChildPageState extends LifeState<ChildPage> {
   @override
   void onStart() {
     super.onStart();
-    _getFilePathData();
-  }
-
-  void _getFilePathData() async {
-    Pop.showLoading(context);
-    try {
-      FilePathRes filePathRes = await KAPI.getFilePathList(widget.childPath);
+    requestNetWorkOfState(() async {
+      return await KAPI.getFilePathList(widget.childPath);
+    }, this,successFun: (FilePathRes filePathRes) {
       setState(() {
         _folderList = filePathRes.folderList;
         _fileList = filePathRes.fileList;
       });
-    } catch (e) {
-      Pop.showToast(context, e.message);
-    } finally {
-      Pop.dissLoading(context);
-    }
+    }, isShowLoading: true);
   }
+
+//  _getFilePathData() async {
+//    ;
+//  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,22 +51,22 @@ class ChildPageState extends LifeState<ChildPage> {
       ),
       body: Center(
           child: Column(
-        mainAxisSize: MainAxisSize.max,
-        children: <Widget>[
-          Expanded(
-              child: ListView.builder(
-            shrinkWrap: true,
-            itemBuilder: (BuildContext context, int index) {
-              if (index < _folderList.length) {
-                return FolderItem(_folderList[index]);
-              } else {
-                return FileItem(_fileList[index - _folderList.length]);
-              }
-            },
-            itemCount: _folderList.length + _fileList.length,
-          ))
-        ],
-      )),
+            mainAxisSize: MainAxisSize.max,
+            children: <Widget>[
+              Expanded(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemBuilder: (BuildContext context, int index) {
+                      if (index < _folderList.length) {
+                        return FolderItem(_folderList[index]);
+                      } else {
+                        return FileItem(_fileList[index - _folderList.length]);
+                      }
+                    },
+                    itemCount: _folderList.length + _fileList.length,
+                  ))
+            ],
+          )),
     );
   }
 }
@@ -110,26 +107,37 @@ class FolderItem extends StatelessWidget {
   }
 }
 
-class FileItem extends StatelessWidget {
+class FileItem extends StatefulWidget {
+  const FileItem(this._item);
 
-  void _getFileInfo(BuildContext context, String path,{bool isOpen=false}) async {
+  final FilePathResFilelist _item;
+
+  @override
+  State<StatefulWidget> createState() {
+    return FileItemState();
+  }
+}
+
+class FileItemState extends LifeState<FileItem> {
+  void _getFileInfo(BuildContext context, String path,
+      {bool isOpen = false}) async {
     var currentItem = {"type": "file", "path": path};
     var dataArr = [currentItem];
     try {
       Pop.showLoading(context);
       var fileInfo = await KAPI.getFilePathInfo(dataArr);
       Pop.dissLoading(context);
-      if(isOpen){
+      if (isOpen) {
         _launchURL(fileInfo.downloadPath);
-      }else{
+      } else {
         FileInfoPop.showFileInfoDialog(context, fileInfo);
       }
-
     } catch (e) {
       Pop.dissLoading(context);
       Pop.showToast(context, e.message);
     }
   }
+
   _launchURL(String url) async {
     if (await canLaunch(url)) {
       await launch(url);
@@ -138,18 +146,14 @@ class FileItem extends StatelessWidget {
     }
   }
 
-  const FileItem(this._item);
-
-  final FilePathResFilelist _item;
-
   @override
   Widget build(BuildContext context) {
     return InkWell(
-        onLongPress:(){
-          _getFileInfo(context, _item.path,isOpen: true);
-        } ,
+        onLongPress: () {
+          _getFileInfo(context, widget._item.path, isOpen: true);
+        },
         onTap: () {
-          _getFileInfo(context, _item.path);
+          _getFileInfo(context, widget._item.path);
         },
         child: Row(
           mainAxisSize: MainAxisSize.max,
@@ -162,7 +166,7 @@ class FileItem extends StatelessWidget {
                 )),
             Expanded(
               child: Text(
-                _item.name,
+                widget._item.name,
                 style: TextStyle(
                     fontSize: 16.0,
                     color: Colors.black,

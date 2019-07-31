@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:kodproject/network/httpmanager.dart';
+import 'package:kodproject/pop.dart';
 
 abstract class LifeState<T extends StatefulWidget> extends State<T>
     with WidgetsBindingObserver {
@@ -21,6 +23,22 @@ abstract class LifeState<T extends StatefulWidget> extends State<T>
       onResume();
     }
   }
+
+  @override
+  void setState(fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
+//
+//  @override
+//  Widget build(BuildContext context) {
+//    return lifeBuild(context);
+//  }
+
+
+
+//  Widget lifeBuild(BuildContext context);
 
   void onStart() {}
 

@@ -28,11 +28,13 @@ class _KHttpManager {
       ..add(InterceptorsWrapper(onRequest: (RequestOptions options) {
         options.baseUrl = GlobalData.instance.kodAddress;
         options.headers["accept-language"] = "accept-language: zh-CN,zh;q=0.9";
+        options.queryParameters["HTTP_X_PLATFORM"]  = Platform.operatingSystem;
         if (GlobalData.instance.userToken != null &&
             GlobalData.instance.userToken.isNotEmpty) {
           options.queryParameters["accessToken"] =
               GlobalData.instance.userToken;
         }
+
       }))
       ..add(KInterceptor.getLogInterceptor());
   }
@@ -60,7 +62,7 @@ class _KHttpManager {
   }
 
   static postFormUrlencoded<T>(String path,
-      {Map queryMap, dynamic data, Options options}) async {
+      {Map queryMap, dynamic data, Options options,BuildContext context}) async {
     if(options==null){
       options =RequestOptions();
     }
@@ -165,7 +167,8 @@ class KInterceptor {
 
 class KAPI {
   //登录
-  static Future<String> login(String username, String password) async {
+  static Future<String> login(String username, String password,{BuildContext context}) async {
+
     var result = await _KHttpManager.get<String>("/?user/loginSubmit",
         queryMap: {
           "isAjax": "1",
@@ -203,7 +206,7 @@ class KAPI {
 
   //根据 文件夹/文件 获取其信息
   static Future<FilePathInfoRes> getFilePathInfo(
-      dataArr) async {
+      dataArr,{BuildContext context}) async {
 //    var map = Map<String, List<Map<String, String>>>();
 
 //    map["dataArr"] = dataArr;

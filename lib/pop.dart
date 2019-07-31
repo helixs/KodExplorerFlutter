@@ -4,6 +4,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 class Pop {
   static bool isShowLoding = false;
+  static BuildContext _showContext;
 
   static snackShow(BuildContext context, String msg) {
     Scaffold.of(context).showSnackBar(new SnackBar(
@@ -50,8 +51,11 @@ class Pop {
     if (isShowLoding) {
       return;
     }
+    if (_showContext != null) {
+      return;
+    }
     isShowLoding = true;
-
+    _showContext = context;
     showDialog(
         // 设置点击 dialog 外部不取消 dialog，默认能够取消
         barrierDismissible: false,
@@ -77,10 +81,16 @@ class Pop {
               ),
             ))).then((result) {
       isShowLoding = false;
+      _showContext = null;
     });
   }
 
   static void dissLoading(BuildContext context) {
+    if (_showContext == null || _showContext != context) {
+      _showContext = null;
+      return;
+    }
+
     if (isShowLoding) {
       Navigator.of(context, rootNavigator: true).pop();
     }

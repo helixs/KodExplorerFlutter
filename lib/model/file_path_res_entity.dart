@@ -85,8 +85,8 @@ class FilePathResFolderlist {
   int ctime; //创建时间
   String type; //类型
   int mtime; //最后修改时间
-  int isReadable; //是否可读
-  int isWriteable; //是否可写
+  bool isReadable; //是否可读
+  bool isWriteable; //是否可写
 
   FilePathResFolderlist(
       {this.mode,
@@ -109,8 +109,30 @@ class FilePathResFolderlist {
     ctime = json['ctime'];
     type = json['type'];
     mtime = json['mtime'];
-    isReadable = json['isReadable'];
-    isWriteable = json['isWriteable'];
+    var read = json['isReadable'];
+    if(read is int){
+      if(read==1){
+        isReadable  =true;
+      }else{
+        isReadable = false;
+      }
+    }else if (read is bool){
+      isReadable = read;
+    }else{
+      isReadable=false;
+    }
+    var write = json['isWriteable'];
+    if(write is int){
+      if(read==1){
+        isWriteable  =true;
+      }else{
+        isWriteable = false;
+      }
+    }else if (write is bool){
+      isWriteable = write;
+    }else{
+      isWriteable=false;
+    }
   }
 
   Map<String, dynamic> toJson() {
