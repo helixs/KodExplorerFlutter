@@ -37,7 +37,7 @@ class _LoginPageState extends LifeState<LoginPage> {
     Pop.showLoading(context);
     await KStorage.setAddress(address);
 
-    return (await KAPI.login(username, passwd));
+    return await KAPI.login(username, passwd);
   }
 
   void _loadSuccess(String token) async {

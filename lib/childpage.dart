@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:toast/toast.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'custom/file_info_pop.dart';
+import 'file/file_type_util.dart';
 import 'model/file_path_res_entity.dart';
 import 'network/net_work_catch.dart';
 import 'pop.dart';
@@ -29,14 +30,18 @@ class ChildPageState extends LifeState<ChildPage> {
   @override
   void onStart() {
     super.onStart();
-    requestNetWorkOfState(() async {
-      return await KAPI.getFilePathList(widget.childPath);
-    }, this,successFun: (FilePathRes filePathRes) {
-      setState(() {
-        _folderList = filePathRes.folderList;
-        _fileList = filePathRes.fileList;
-      });
-    }, isShowLoading: true);
+    requestNetWorkOfState(
+        () async {
+          return await KAPI.getFilePathList(widget.childPath);
+        },
+        this,
+        successFun: (FilePathRes filePathRes) {
+          setState(() {
+            _folderList = filePathRes.folderList;
+            _fileList = filePathRes.fileList;
+          });
+        },
+        isShowLoading: true);
   }
 
 //  _getFilePathData() async {
@@ -51,22 +56,22 @@ class ChildPageState extends LifeState<ChildPage> {
       ),
       body: Center(
           child: Column(
-            mainAxisSize: MainAxisSize.max,
-            children: <Widget>[
-              Expanded(
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemBuilder: (BuildContext context, int index) {
-                      if (index < _folderList.length) {
-                        return FolderItem(_folderList[index]);
-                      } else {
-                        return FileItem(_fileList[index - _folderList.length]);
-                      }
-                    },
-                    itemCount: _folderList.length + _fileList.length,
-                  ))
-            ],
-          )),
+        mainAxisSize: MainAxisSize.max,
+        children: <Widget>[
+          Expanded(
+              child: ListView.builder(
+            shrinkWrap: true,
+            itemBuilder: (BuildContext context, int index) {
+              if (index < _folderList.length) {
+                return FolderItem(_folderList[index]);
+              } else {
+                return FileItem(_fileList[index - _folderList.length]);
+              }
+            },
+            itemCount: _folderList.length + _fileList.length,
+          ))
+        ],
+      )),
     );
   }
 }
@@ -78,6 +83,7 @@ class FolderItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return InkWell(
         onTap: () {
           Navigator.push(context, MaterialPageRoute(builder: (context) {
@@ -119,23 +125,10 @@ class FileItem extends StatefulWidget {
 }
 
 class FileItemState extends LifeState<FileItem> {
-  void _getFileInfo(BuildContext context, String path,
-      {bool isOpen = false}) async {
+  _getFileInfo(String path) async {
     var currentItem = {"type": "file", "path": path};
     var dataArr = [currentItem];
-    try {
-      Pop.showLoading(context);
-      var fileInfo = await KAPI.getFilePathInfo(dataArr);
-      Pop.dissLoading(context);
-      if (isOpen) {
-        _launchURL(fileInfo.downloadPath);
-      } else {
-        FileInfoPop.showFileInfoDialog(context, fileInfo);
-      }
-    } catch (e) {
-      Pop.dissLoading(context);
-      Pop.showToast(context, e.message);
-    }
+    return await KAPI.getFilePathInfo(dataArr);
   }
 
   _launchURL(String url) async {
@@ -148,12 +141,31 @@ class FileItemState extends LifeState<FileItem> {
 
   @override
   Widget build(BuildContext context) {
+    FileType type =FileTypeUtil.getFileType(widget._item.ext);
+    IconData iconData =FileTypeUtil.getIconData(type);
     return InkWell(
         onLongPress: () {
-          _getFileInfo(context, widget._item.path, isOpen: true);
+          requestNetWorkOfState(
+              () async {
+                return await _getFileInfo(widget._item.path);
+              },
+              this,
+              successFun: (fileInfo) {
+                _launchURL(fileInfo.downloadPath);
+              },
+              isShowLoading: true);
         },
         onTap: () {
-          _getFileInfo(context, widget._item.path);
+          requestNetWorkOfState(
+              () async {
+                return await _getFileInfo(widget._item.path);
+              },
+              this,
+              successFun: (fileInfo) {
+                _launchURL(fileInfo.downloadPath);
+                FileInfoPop.showFileInfoDialog(context, fileInfo);
+              },
+              isShowLoading: true);
         },
         child: Row(
           mainAxisSize: MainAxisSize.max,
@@ -161,7 +173,7 @@ class FileItemState extends LifeState<FileItem> {
             Container(
                 padding: EdgeInsets.all(20),
                 child: Icon(
-                  Icons.book,
+                  iconData,
                   color: Colors.blue[500],
                 )),
             Expanded(
