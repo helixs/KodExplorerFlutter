@@ -4,7 +4,7 @@
 
 ## 新消息
 
-可道云官方出了移动客户端了，使用的是ReactNative编写https://kodcloud.com/download/，不过本demo还是照常更新
+可道云官方出了移动客户端了，使用的是ReactNative编写https://kodcloud.com/download/ ，不过本demo还是照常更新
 
 ## 安装准备
 
