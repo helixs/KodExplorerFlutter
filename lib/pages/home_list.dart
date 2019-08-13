@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:kodproject/pop.dart';
+import 'package:kodproject/custom/pop.dart';
 import 'package:toast/toast.dart';
-import 'childpage.dart';
-import 'custom/KBar.dart';
+import 'package:kodproject/pages/childpage.dart';
+import '../custom/KBar.dart';
 import 'package:kodproject/network/httpmanager.dart';
-import 'life/life_state.dart';
-import 'model/file_tree_res_entity.dart';
-import 'network/net_work_catch.dart';
+import '../life/life_state.dart';
+import '../model/file_tree_res_entity.dart';
+import '../network/net_work_catch.dart';
 
 class HomePage extends StatefulWidget {
   final String title = "主页";

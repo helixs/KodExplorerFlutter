@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
-import 'home_list.dart';
+import 'package:kodproject/pages/home_list.dart';
 import 'package:kodproject/network/httpmanager.dart';
-import 'KData.dart';
-import 'life/life_state.dart';
-import 'network/net_work_catch.dart';
-import 'pop.dart';
+import 'package:kodproject/storage/KData.dart';
+import '../life/life_state.dart';
+import '../network/net_work_catch.dart';
+import 'package:kodproject/custom/pop.dart';
 import 'package:toast/toast.dart';
 
 //

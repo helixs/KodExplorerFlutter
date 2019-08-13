@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:kodproject/model/file_path_info_entity.dart';
 import 'package:flutter/services.dart';
+import 'package:kodproject/pages/local_storage_browser.dart';
+import '../custom/Buttons.dart';
+import '../tools/permission_utils.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:kodproject/custom/pop.dart';
 
-import '../pop.dart';
-
+//文件详细信息弹窗
 class FileInfoPop {
   static showFileInfoDialog(
       BuildContext context, FilePathInfoRes filePathInfoRes) {
@@ -12,16 +16,16 @@ class FileInfoPop {
         builder: (context) => Dialog(
               child: Padding(
                   padding: EdgeInsets.all(10),
-                  child: FileInfoWidget(filePathInfoRes.toItemDesc())),
+                  child: _FileInfoWidget(filePathInfoRes.toItemDesc())),
             ));
   }
 }
 
-class FileInfoWidget extends StatelessWidget {
+class _FileInfoWidget extends StatelessWidget {
 //  final FilePathInfoRes _filePathInfo;
   final List<FileKVInfo> _items;
 
-  const FileInfoWidget(this._items, {Key key}) : super(key: key);
+  const _FileInfoWidget(this._items, {Key key}) : super(key: key);
 
 //  _items = this._filePathInfo.toItemDesc();
   @override
@@ -33,25 +37,42 @@ class FileInfoWidget extends StatelessWidget {
         ListView.builder(
             shrinkWrap: true,
             itemBuilder: (BuildContext context, int index) {
-              return FileInfoItem(_items[index]);
+              return _FileInfoItem(_items[index]);
             },
-            itemCount: _items.length)
+            itemCount: _items.length),
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: Buttons.getGeneralRaisedButton("下载", onPressed: () async {
+
+                    bool checked=await checkLocalPermission(PermissionGroup.storage);
+                    if(checked){
+                      Navigator.pushReplacement(context,
+                          MaterialPageRoute(builder: (context) {
+                            return LocalStorageList();
+                          }));
+                    }else{
+                      openAppSetting();
+                    }
+              }),
+            )
+          ],
+        )
       ],
     );
   }
 }
 
-class FileInfoItem extends StatelessWidget {
+class _FileInfoItem extends StatelessWidget {
   final FileKVInfo _kvInfo;
-  FileInfoItem(this._kvInfo, {Key key}) : super(key: key);
 
-
+  _FileInfoItem(this._kvInfo, {Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     var downloadPress;
-    if(_kvInfo.isDownloadUrl){
-      downloadPress =(){
+    if (_kvInfo.isDownloadUrl) {
+      downloadPress = () {
         Clipboard.setData(new ClipboardData(text: _kvInfo.value));
         Pop.showToast(context, "链接已经复制到剪贴板");
       };

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kodproject/network/httpmanager.dart';
-import 'package:kodproject/pop.dart';
+import 'package:kodproject/custom/pop.dart';
 
 abstract class LifeState<T extends StatefulWidget> extends State<T>
     with WidgetsBindingObserver {

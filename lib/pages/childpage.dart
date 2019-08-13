@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:toast/toast.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'custom/file_info_pop.dart';
-import 'file/file_type_util.dart';
-import 'model/file_path_res_entity.dart';
-import 'network/net_work_catch.dart';
-import 'pop.dart';
+import '../custom/file_info_pop.dart';
+import '../file/file_type_util.dart';
+import '../model/file_path_res_entity.dart';
+import '../network/net_work_catch.dart';
+import 'package:kodproject/custom/pop.dart';
 import 'package:kodproject/network/httpmanager.dart';
 
-import 'life/life_state.dart';
+import '../life/life_state.dart';
 
 class ChildPage extends StatefulWidget {
   final String childName;
@@ -162,7 +162,7 @@ class FileItemState extends LifeState<FileItem> {
               },
               this,
               successFun: (fileInfo) {
-                _launchURL(fileInfo.downloadPath);
+//                _launchURL(fileInfo.downloadPath);
                 FileInfoPop.showFileInfoDialog(context, fileInfo);
               },
               isShowLoading: true);

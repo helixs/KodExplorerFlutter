@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:kodproject/network/httpmanager.dart';
-import 'package:kodproject/pop.dart';
+import 'package:kodproject/custom/pop.dart';
 
-import '../loginpage.dart';
+import 'package:kodproject/pages/loginpage.dart';
 
 void requestNetWorkOfState(Function requestFun,State state,{@required Function successFun,bool isShowLoading = false}) async{
 

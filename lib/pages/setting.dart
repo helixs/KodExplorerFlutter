@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'custom/KBar.dart';
-import 'loginpage.dart';
+import '../custom/KBar.dart';
+import 'package:kodproject/pages/loginpage.dart';
 
 class SettingPage extends StatelessWidget {
   _logout(BuildContext context) {

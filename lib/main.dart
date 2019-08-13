@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'home_list.dart';
+import 'package:kodproject/pages/home_list.dart';
 import 'life/life_state.dart';
-import 'loginpage.dart';
-import 'KData.dart';
-import 'pop.dart';
+import 'package:kodproject/pages/loginpage.dart';
+import 'package:kodproject/storage/KData.dart';
+import 'package:kodproject/custom/pop.dart';
 
 void main() => runApp(MyApp());
 

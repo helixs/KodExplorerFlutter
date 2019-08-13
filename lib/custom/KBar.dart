@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../setting.dart';
+import 'package:kodproject/pages/setting.dart';
 
 class KAppBar{
-  final String titleName;
-
-  KAppBar(this.titleName);
   static AppBar getSettingBar(BuildContext buildContext,String titleName,{VoidCallback settingPress}){
     if(settingPress==null&&buildContext!=null){
       settingPress = (){
@@ -22,6 +19,16 @@ class KAppBar{
           onPressed: settingPress,
         )
       ],
+    );
+  }
+  static AppBar getFilePathTreeBar(BuildContext buildContext,String titleName,String path,{VoidCallback settingPress}){
+
+    return AppBar(
+      title: Text(titleName),
+      actions: <Widget>[
+        Text("确定")
+      ],
+      bottom:PreferredSize(child: Text(path), preferredSize: Size.fromHeight(48.0)) ,
     );
   }
 }
