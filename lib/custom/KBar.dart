@@ -21,14 +21,14 @@ class KAppBar{
       ],
     );
   }
-  static AppBar getFilePathTreeBar(BuildContext buildContext,String titleName,String path,{VoidCallback settingPress}){
+  static AppBar getFilePathTreeBar(BuildContext buildContext,String titleName,Widget widget,String path,{VoidCallback settingPress}){
 
     return AppBar(
       title: Text(titleName),
       actions: <Widget>[
         Text("确定")
       ],
-      bottom:PreferredSize(child: Text(path), preferredSize: Size.fromHeight(48.0)) ,
+      bottom:PreferredSize(child: widget, preferredSize: Size.fromHeight(40.0)) ,
     );
   }
 }

@@ -41,8 +41,11 @@ void main(){
 //   print(c.info);
 //  c.run();
 
-var bbq = new BBQS("");
+//var bbq = new BBQS("");
 
+var  ss = "/sdsds/sbbb/qq";
+var reuslt = ss.split("/");
+print(reuslt);
 }
 
 class BBQ{
