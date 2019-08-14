@@ -18,37 +18,49 @@ class LocalStorageList extends StatefulWidget {
 
 class LocalStorageState extends LifeState<LocalStorageList> {
   List<File> _files = [];
-  List<File> _directorys = [];
+  List<Directory> _directorys = [];
   Directory _currentDirectory;
+  Directory _mRootDirectory;
   bool _reMax;
   ScrollController _controller = ScrollController();
 
   @override
   void onStart() {
     super.onStart();
-    _getFolderList();
+    _initFolder();
   }
 
   @override
   void everyFrame() {
     super.everyFrame();
-    print("everyFrame1:${_controller.position.pixels}");
-    print("everyFrame2:${_controller.position.maxScrollExtent}");
-    if(_reMax&&_controller.position.pixels<_controller.position.maxScrollExtent){
-       _controller.jumpTo(_controller.position.maxScrollExtent);
-       _reMax = false;
+    if (_reMax &&
+        _controller.position.pixels < _controller.position.maxScrollExtent) {
+      _controller.jumpTo(_controller.position.maxScrollExtent);
+      _reMax = false;
     }
   }
 
-  _getFolderList() async {
-    Directory directory = await getSdcardDirectory();
+  _initFolder() async {
+    _mRootDirectory = await getSdcardRootDirectory();
+    Directory appDirectory = await getAppStorageDirectory();
 
+    _getCurrentFolderList(appDirectory);
+  }
+
+  _getCurrentFolderList(Directory directory) async {
     if (directory != null) {
-      var localFiles = directory.listSync();
-      List<File> locaDirectory = [];
+      List<FileSystemEntity> localFiles = directory.listSync();
+      List<Directory> locaDirectory = [];
       localFiles.forEach((file) {
-        FileSystemEntity.isDirectorySync(file.path);
-        locaDirectory.add(file);
+        if (FileSystemEntity.isDirectorySync(file.path)) {
+          locaDirectory.add(Directory(file.path));
+        }
+      });
+      locaDirectory.sort((a,b){
+        String aName = basename(a.path).toUpperCase();
+        String bName = basename(b.path).toUpperCase();
+        return aName.compareTo(bName);
+
       });
       setState(() {
         _directorys = locaDirectory;
@@ -66,6 +78,9 @@ class LocalStorageState extends LifeState<LocalStorageList> {
       return directorys;
     }
     directorys.add(directory);
+    if (_mRootDirectory != null && _mRootDirectory.path == directory.path) {
+      return directorys;
+    }
     if (directory.path == "/") {
       return directorys;
     }
@@ -90,7 +105,9 @@ class LocalStorageState extends LifeState<LocalStorageList> {
               directorys[index],
               index == 0,
               onPathCallback: (directory) {
-                Pop.showToast(context, directory.path);
+                if (_currentDirectory.path != directory.path) {
+                  _getCurrentFolderList(directory);
+                }
               },
             );
           },
@@ -113,12 +130,14 @@ class LocalStorageState extends LifeState<LocalStorageList> {
         mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          ListView.builder(
-            shrinkWrap: true,
-            itemBuilder: (BuildContext context, int index) {
-              return _FolderItem(_directorys[index]);
-            },
-            itemCount: _directorys.length,
+          Expanded(
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemBuilder: (BuildContext context, int index) {
+                return _FolderItem(_directorys[index],onPathCallback: (directory)=>_getCurrentFolderList(directory) ,);
+              },
+              itemCount: _directorys.length,
+            ),
           )
         ],
       )),
@@ -144,13 +163,19 @@ class PathTreeItem extends StatelessWidget {
         color: Colors.white,
       );
       childs.add(icon);
+      var text = Text(
+        basename(_pathDirectory.path),
+        style: TextStyle(
+            fontSize: 16.0, color: Colors.white, fontWeight: FontWeight.w600),
+      );
+      childs.add(text);
+    }else{
+      var icon = Icon(
+        Icons.phone_android,
+        color: Colors.white,
+      );
+      childs.add(icon);
     }
-    var text = Text(
-      basename(_pathDirectory.path),
-      style: TextStyle(
-          fontSize: 16.0, color: Colors.white, fontWeight: FontWeight.w600),
-    );
-    childs.add(text);
 
     return InkWell(
       onTap: () {
@@ -165,18 +190,17 @@ class PathTreeItem extends StatelessWidget {
 }
 
 class _FolderItem extends StatelessWidget {
-  const _FolderItem(this._item);
+  const _FolderItem(this._item,{@required this.onPathCallback});
 
-  final File _item;
+  final Directory _item;
+  final PathClickCallBack onPathCallback;
 
   @override
   Widget build(BuildContext context) {
     var fileName = basename(_item.path);
     return InkWell(
         onTap: () {
-//          Navigator.push(context, MaterialPageRoute(builder: (context) {
-////            return ChildPage(childName: basename(_item.path), childPath: _item.path);
-//          }));
+          onPathCallback(_item);
         },
         child: Row(
           mainAxisSize: MainAxisSize.max,

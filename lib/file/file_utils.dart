@@ -1,11 +1,17 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
+import '../plugin/file_path_provider.dart';
 
-Future<Directory> getSdcardDirectory() async{
+Future<Directory> getSdcardRootDirectory() async{
   if(Platform.isAndroid){
     return  await getExternalStorageDirectory();
+  }
+  return null;
+}
+Future<Directory> getAppStorageDirectory() async{
+  if(Platform.isAndroid){
+    return  await getStorageDirectory();
   }
   return null;
 }

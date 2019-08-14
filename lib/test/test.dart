@@ -43,10 +43,14 @@ void main(){
 
 //var bbq = new BBQS("");
 
-var  ss = "/sdsds/sbbb/qq";
-var reuslt = ss.split("/");
-print(reuslt);
+var  ss = [2,1,5,3,6];
+ss.sort((a,b){
+  print("$a,$b");
+  return a-b;
+});
+print(ss);
 }
+
 
 class BBQ{
   BBQ(String qq){
