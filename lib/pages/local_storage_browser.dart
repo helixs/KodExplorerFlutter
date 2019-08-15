@@ -18,11 +18,18 @@ class LocalStorageList extends StatefulWidget {
 
 class LocalStorageState extends LifeState<LocalStorageList> {
   List<File> _files = [];
+  //当前路径下所有的文件夹
   List<Directory> _directorys = [];
+  //保存每个路径的pixels状态
+  Map<String,double> pathPixels = {};
+  //当前文件夹
   Directory _currentDirectory;
+  //根目录文件夹
   Directory _mRootDirectory;
-  bool _reMax;
-  ScrollController _controller = ScrollController();
+  bool _reMax=false;
+  bool _rePathReady=false;
+  ScrollController _pathHeadController = ScrollController();
+  ScrollController _pathFolderController = ScrollController();
 
   @override
   void onStart() {
@@ -34,10 +41,18 @@ class LocalStorageState extends LifeState<LocalStorageList> {
   void everyFrame() {
     super.everyFrame();
     if (_reMax &&
-        _controller.position.pixels < _controller.position.maxScrollExtent) {
-      _controller.jumpTo(_controller.position.maxScrollExtent);
+        _pathHeadController.position.pixels < _pathHeadController.position.maxScrollExtent) {
+      _pathHeadController.jumpTo(_pathHeadController.position.maxScrollExtent);
       _reMax = false;
     }
+//    if(_rePathReady&&_pathHeadController.position.pixels!=pathPixels[_currentDirectory.path]){
+//      if(_currentDirectory==null||pathPixels[_currentDirectory.path]==null){
+//        _rePathReady = false;
+//      }else{
+//        _pathFolderController.jumpTo(pathPixels[_currentDirectory.path]);
+//        _rePathReady=false;
+//      }
+//    }
   }
 
   _initFolder() async {
@@ -46,7 +61,7 @@ class LocalStorageState extends LifeState<LocalStorageList> {
 
     _getCurrentFolderList(appDirectory);
   }
-
+  //取得当前路径下所有的文件夹，并刷新
   _getCurrentFolderList(Directory directory) async {
     if (directory != null) {
       List<FileSystemEntity> localFiles = directory.listSync();
@@ -56,11 +71,10 @@ class LocalStorageState extends LifeState<LocalStorageList> {
           locaDirectory.add(Directory(file.path));
         }
       });
-      locaDirectory.sort((a,b){
+      locaDirectory.sort((a, b) {
         String aName = basename(a.path).toUpperCase();
         String bName = basename(b.path).toUpperCase();
         return aName.compareTo(bName);
-
       });
       setState(() {
         _directorys = locaDirectory;
@@ -69,6 +83,8 @@ class LocalStorageState extends LifeState<LocalStorageList> {
     }
   }
 
+
+   //得到文件夹所有的父目录
   List<Directory> getParentDirectory(
       List<Directory> directorys, Directory directory) {
     if (directorys == null) {
@@ -87,10 +103,30 @@ class LocalStorageState extends LifeState<LocalStorageList> {
     return getParentDirectory(directorys, directory.parent);
   }
 
-  Widget _getListPaths(Directory currentDirectory) {
+  _getFolderListView(Directory directory) {
+
+
+    return ListView.builder(
+      shrinkWrap: true,
+      controller: _pathFolderController,
+      itemBuilder: (BuildContext context, int index) {
+        return _FolderItem(
+          _directorys[index],
+          onPathCallback: (directory) {
+            pathPixels[_currentDirectory.path] = _pathFolderController.position.pixels;
+            _pathFolderController.jumpTo(_pathFolderController.position.minScrollExtent);
+            _getCurrentFolderList(directory);
+          },
+        );
+      },
+      itemCount: _directorys.length,
+    );
+  }
+
+  Widget _getListPathsView(Directory currentDirectory) {
     List<Directory> directorys =
         getParentDirectory(null, currentDirectory).reversed.toList();
-    _reMax = true;
+
 
     return Container(
         width: double.infinity,
@@ -99,13 +135,14 @@ class LocalStorageState extends LifeState<LocalStorageList> {
         child: ListView.builder(
           shrinkWrap: true,
           scrollDirection: Axis.horizontal,
-          controller: _controller,
+          controller: _pathHeadController,
           itemBuilder: (BuildContext context, int index) {
             return PathTreeItem(
               directorys[index],
               index == 0,
               onPathCallback: (directory) {
                 if (_currentDirectory.path != directory.path) {
+                  pathPixels.clear();
                   _getCurrentFolderList(directory);
                 }
               },
@@ -115,33 +152,57 @@ class LocalStorageState extends LifeState<LocalStorageList> {
         ));
   }
 
+  bool _isRootFolder() {
+    if (_mRootDirectory == null && _currentDirectory.path == "/") {
+      return true;
+    }
+    return _mRootDirectory.path == _currentDirectory.path;
+  }
+
+  bool _backList() {
+    pathPixels.remove(_currentDirectory.path);
+    if (_currentDirectory.parent != null) {
+      if(pathPixels[_currentDirectory.parent.path]!=null){
+        _pathFolderController.jumpTo(pathPixels[_currentDirectory.parent.path]);
+      }
+      _getCurrentFolderList(_currentDirectory.parent);
+     return false;
+    } else {
+      return true;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var path = "";
     if (_currentDirectory != null) {
       path = _currentDirectory.path;
     }
-    var listPaths = _getListPaths(_currentDirectory);
-
-    return Scaffold(
-      appBar: KAppBar.getFilePathTreeBar(context, "选择文件存放目录", listPaths, path),
-      body: Center(
-          child: Column(
-        mainAxisSize: MainAxisSize.max,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Expanded(
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemBuilder: (BuildContext context, int index) {
-                return _FolderItem(_directorys[index],onPathCallback: (directory)=>_getCurrentFolderList(directory) ,);
-              },
-              itemCount: _directorys.length,
-            ),
-          )
-        ],
-      )),
-    );
+    _reMax = true;
+    var currentPathListView = _getListPathsView(_currentDirectory);
+    var currentFolderListView = _getFolderListView(_currentDirectory);
+    return WillPopScope(
+        onWillPop: () async {
+          if (_isRootFolder()) {
+            return true;
+          } else {
+            return _backList();
+          }
+        },
+        child: Scaffold(
+          appBar: KAppBar.getFilePathTreeBar(
+              context, "选择文件存放目录", currentPathListView, path),
+          body: Center(
+              child: Column(
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Expanded(
+                child: currentFolderListView,
+              )
+            ],
+          )),
+        ));
   }
 }
 
@@ -169,7 +230,7 @@ class PathTreeItem extends StatelessWidget {
             fontSize: 16.0, color: Colors.white, fontWeight: FontWeight.w600),
       );
       childs.add(text);
-    }else{
+    } else {
       var icon = Icon(
         Icons.phone_android,
         color: Colors.white,
@@ -190,7 +251,7 @@ class PathTreeItem extends StatelessWidget {
 }
 
 class _FolderItem extends StatelessWidget {
-  const _FolderItem(this._item,{@required this.onPathCallback});
+  const _FolderItem(this._item, {@required this.onPathCallback});
 
   final Directory _item;
   final PathClickCallBack onPathCallback;
