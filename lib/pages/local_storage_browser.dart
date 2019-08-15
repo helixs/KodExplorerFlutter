@@ -27,7 +27,6 @@ class LocalStorageState extends LifeState<LocalStorageList> {
   //根目录文件夹
   Directory _mRootDirectory;
   bool _reMax=false;
-  bool _rePathReady=false;
   ScrollController _pathHeadController = ScrollController();
   ScrollController _pathFolderController = ScrollController();
 
@@ -45,14 +44,7 @@ class LocalStorageState extends LifeState<LocalStorageList> {
       _pathHeadController.jumpTo(_pathHeadController.position.maxScrollExtent);
       _reMax = false;
     }
-//    if(_rePathReady&&_pathHeadController.position.pixels!=pathPixels[_currentDirectory.path]){
-//      if(_currentDirectory==null||pathPixels[_currentDirectory.path]==null){
-//        _rePathReady = false;
-//      }else{
-//        _pathFolderController.jumpTo(pathPixels[_currentDirectory.path]);
-//        _rePathReady=false;
-//      }
-//    }
+
   }
 
   _initFolder() async {
