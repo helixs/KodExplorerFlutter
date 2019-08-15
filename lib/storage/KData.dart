@@ -37,6 +37,7 @@ class GlobalData {
 class KStorage {
   static const String _TOKEN = "accessToken";
   static const String _KOD_ADDRESS = "kodAddress";
+  static const String _KOD_DWONLOAD_PATH = "download_path";
 
   static getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -57,5 +58,14 @@ class KStorage {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString(_KOD_ADDRESS,address);
     GlobalData.instance.kodAddress = address;
+  }
+  static Future<String> getDefaultDownloadPath() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String accessToken = (prefs.getString(_KOD_DWONLOAD_PATH));
+    return accessToken;
+  }
+  static setDefaultDownloadPath(String address) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString(_KOD_DWONLOAD_PATH,address);
   }
 }

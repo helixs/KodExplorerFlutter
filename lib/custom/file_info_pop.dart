@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:kodproject/life/life_state.dart';
 import 'package:kodproject/model/file_path_info_entity.dart';
 import 'package:flutter/services.dart';
 import 'package:kodproject/pages/local_storage_browser.dart';
+import 'package:kodproject/storage/KData.dart';
 import '../custom/Buttons.dart';
 import '../tools/permission_utils.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -9,25 +13,24 @@ import 'package:kodproject/custom/pop.dart';
 
 //文件详细信息弹窗
 class FileInfoPop {
-  static showFileInfoDialog(
-      BuildContext context, FilePathInfoRes filePathInfoRes) {
-    showDialog(
+  static show(BuildContext context, FilePathInfoRes filePathInfoRes) async {
+    return await showDialog(
         context: context,
         builder: (context) => Dialog(
               child: Padding(
                   padding: EdgeInsets.all(10),
-                  child: _FileInfoWidget(filePathInfoRes.toItemDesc())),
+                  child: _FileInfoWidget.create(filePathInfoRes)),
             ));
   }
 }
 
 class _FileInfoWidget extends StatelessWidget {
-//  final FilePathInfoRes _filePathInfo;
+  final FilePathInfoRes _filePathInfo;
   final List<FileKVInfo> _items;
 
-  const _FileInfoWidget(this._items, {Key key}) : super(key: key);
+  _FileInfoWidget.create(this._filePathInfo)
+      : _items = _filePathInfo.toItemDesc();
 
-//  _items = this._filePathInfo.toItemDesc();
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -43,17 +46,8 @@ class _FileInfoWidget extends StatelessWidget {
         Row(
           children: <Widget>[
             Expanded(
-              child: Buttons.getGeneralRaisedButton("下载", onPressed: () async {
-
-                    bool checked=await checkLocalPermission(PermissionGroup.storage);
-                    if(checked){
-                      Navigator.pushReplacement(context,
-                          MaterialPageRoute(builder: (context) {
-                            return LocalStorageList();
-                          }));
-                    }else{
-                      openAppSetting();
-                    }
+              child: Buttons.getGeneralRaisedButton("下载", onPressed: () {
+                Navigator.pop(context, _filePathInfo);
               }),
             )
           ],
@@ -99,6 +93,134 @@ class _FileInfoItem extends StatelessWidget {
                       textAlign: TextAlign.left))),
           flex: 3,
         ),
+      ],
+    );
+  }
+}
+
+class DownloadFilePrepareDialog {
+  static show(BuildContext context, FilePathInfoRes filePathInfoRes) {
+    showDialog(
+        context: context,
+        builder: (context) => Dialog(
+                child: Padding(
+              padding: EdgeInsets.all(10),
+              child: _DownloadInfoWidget(
+                  filePathInfoRes.downloadPath, filePathInfoRes.name),
+            )));
+  }
+}
+
+class _DownloadInfoWidget extends StatefulWidget {
+  final String _downloadUrl;
+  final String _fileName;
+
+  const _DownloadInfoWidget(this._downloadUrl, this._fileName);
+
+  @override
+  State<StatefulWidget> createState() {
+    return _DownloadPathState();
+  }
+}
+
+class _DownloadPathState extends LifeState<_DownloadInfoWidget> {
+  //下载地址
+  final TextEditingController _addressController = new TextEditingController();
+
+  //文件名称
+  final TextEditingController _fileNameController = new TextEditingController();
+
+  //下载目录
+  final TextEditingController _localPathController =
+      new TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    initDownload();
+  }
+
+  initDownload() async {
+    String downloadPath = await KStorage.getDefaultDownloadPath();
+    if (downloadPath != null && downloadPath != "") {
+      _localPathController.text = downloadPath;
+    }
+  }
+
+  openLocalStorageList() async {
+    bool checked = await checkLocalPermission(PermissionGroup.storage);
+    if (checked) {
+      var directory =
+          await Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return LocalStorageList(_localPathController.text);
+      }));
+      if (directory != null && directory is Directory) {
+        _localPathController.text = directory.path;
+        KStorage.setDefaultDownloadPath(directory.path);
+      }
+    } else {
+      openAppSetting();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _addressController.text = widget._downloadUrl;
+    _fileNameController.text = widget._fileName;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Text(
+          "新任务",
+          style: TextStyle(fontSize: 16.0, color: Colors.blue),
+        ),
+        TextField(
+          //自动对焦
+          autofocus: true,
+          //外观
+          decoration: InputDecoration(
+            labelText: "下载地址",
+            contentPadding: EdgeInsets.all(10),
+            hintText: "请输入要下载的地址",
+          ),
+          controller: _addressController,
+        ),
+        TextFormField(
+            //自动对焦
+            autofocus: true,
+            //外观
+            decoration: InputDecoration(
+              labelText: "文件名称",
+              contentPadding: EdgeInsets.all(10),
+              hintText: "如果不填为默认名称",
+            ),
+            controller: _fileNameController),
+        InkWell(
+          onTap: openLocalStorageList,
+          child: TextField(
+            keyboardType: TextInputType.multiline,
+            maxLines: null,
+            //自动对焦
+            enabled: false,
+            autofocus: true,
+            //外观
+            decoration: InputDecoration(
+              labelText: "添加下载目录",
+              contentPadding: EdgeInsets.all(10),
+              hintText: "添加下载目录",
+            ),
+            controller: _localPathController,
+          ),
+        ),
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: Buttons.getGeneralRaisedButton("下载",
+                  onPressed:null),
+            )
+          ],
+        )
       ],
     );
   }

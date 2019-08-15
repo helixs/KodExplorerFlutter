@@ -9,7 +9,13 @@ import 'package:kodproject/life/life_state.dart';
 import '../file/file_utils.dart';
 import 'package:path/path.dart';
 
+//本地文件浏览器，成功返回Directory
 class LocalStorageList extends StatefulWidget {
+
+  final String _defaultPath;
+
+  const LocalStorageList(this._defaultPath);
+
   @override
   State<StatefulWidget> createState() {
     return LocalStorageState();
@@ -49,7 +55,13 @@ class LocalStorageState extends LifeState<LocalStorageList> {
 
   _initFolder() async {
     _mRootDirectory = await getSdcardRootDirectory();
-    Directory appDirectory = await getAppStorageDirectory();
+    Directory appDirectory ;
+    if(widget._defaultPath!=null&&widget._defaultPath!=""){
+      appDirectory = Directory(widget._defaultPath);
+    }else{
+      appDirectory = await getAppStorageDirectory();
+    }
+
 
     _getCurrentFolderList(appDirectory);
   }
@@ -164,6 +176,10 @@ class LocalStorageState extends LifeState<LocalStorageList> {
     }
   }
 
+  saveDirectory(BuildContext buildContext){
+    Navigator.pop(buildContext,_currentDirectory);
+  }
+
   @override
   Widget build(BuildContext context) {
     var path = "";
@@ -173,7 +189,7 @@ class LocalStorageState extends LifeState<LocalStorageList> {
     _reMax = true;
     var currentPathListView = _getListPathsView(_currentDirectory);
     var currentFolderListView = _getFolderListView(_currentDirectory);
-    return WillPopScope(
+    return Theme(data: Theme.of(context).copyWith(primaryColor: Colors.amber), child: WillPopScope(
         onWillPop: () async {
           if (_isRootFolder()) {
             return true;
@@ -183,18 +199,18 @@ class LocalStorageState extends LifeState<LocalStorageList> {
         },
         child: Scaffold(
           appBar: KAppBar.getFilePathTreeBar(
-              context, "选择文件存放目录", currentPathListView, path),
+              context, "选择文件存放目录", currentPathListView, path,confirm: ()=>saveDirectory(context)),
           body: Center(
               child: Column(
-            mainAxisSize: MainAxisSize.max,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              Expanded(
-                child: currentFolderListView,
-              )
-            ],
-          )),
-        ));
+                mainAxisSize: MainAxisSize.max,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Expanded(
+                    child: currentFolderListView,
+                  )
+                ],
+              )),
+        )));
   }
 }
 
@@ -262,7 +278,7 @@ class _FolderItem extends StatelessWidget {
                 padding: EdgeInsets.all(20),
                 child: Icon(
                   Icons.folder,
-                  color: Colors.blue[500],
+                  color: Colors.amber,
                 )),
             Expanded(
               child: Text(

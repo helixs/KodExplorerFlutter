@@ -21,12 +21,13 @@ class KAppBar{
       ],
     );
   }
-  static AppBar getFilePathTreeBar(BuildContext buildContext,String titleName,Widget widget,String path,{VoidCallback settingPress}){
+  static AppBar getFilePathTreeBar(BuildContext buildContext,String titleName,Widget widget,String path,{VoidCallback confirm}){
 
     return AppBar(
       title: Text(titleName),
       actions: <Widget>[
-        Text("确定")
+        IconButton(icon: Icon(Icons.check,color: Colors.white,), onPressed: confirm),
+        IconButton(icon: Icon(Icons.clear,color: Colors.white,), onPressed: ()=>Navigator.of(buildContext).pop())
       ],
       bottom:PreferredSize(child: widget, preferredSize: Size.fromHeight(40.0)) ,
     );

@@ -43,12 +43,17 @@ void main(){
 
 //var bbq = new BBQS("");
 
-var  ss = [2,1,5,3,6];
-ss.sort((a,b){
-  print("$a,$b");
-  return a-b;
-});
-print(ss);
+//var  ss = [2,1,5,3,6];
+//ss.sort((a,b){
+//  print("$a,$b");
+//  return a-b;
+//});
+
+//print(ss);
+
+//String sdwada =null;
+//var qq = sdwada??"1";
+//var bb = sdwada?:"1";
 }
 
 

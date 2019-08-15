@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kodproject/model/file_path_info_entity.dart';
 import 'package:toast/toast.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../custom/file_info_pop.dart';
@@ -83,7 +84,6 @@ class FolderItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return InkWell(
         onTap: () {
           Navigator.push(context, MaterialPageRoute(builder: (context) {
@@ -141,8 +141,8 @@ class FileItemState extends LifeState<FileItem> {
 
   @override
   Widget build(BuildContext context) {
-    FileType type =FileTypeUtil.getFileType(widget._item.ext);
-    IconData iconData =FileTypeUtil.getIconData(type);
+    FileType type = FileTypeUtil.getFileType(widget._item.ext);
+    IconData iconData = FileTypeUtil.getIconData(type);
     return InkWell(
         onLongPress: () {
           requestNetWorkOfState(
@@ -157,15 +157,16 @@ class FileItemState extends LifeState<FileItem> {
         },
         onTap: () {
           requestNetWorkOfState(
-              () async {
-                return await _getFileInfo(widget._item.path);
-              },
-              this,
-              successFun: (fileInfo) {
+              () async => await _getFileInfo(widget._item.path), this,
+              successFun: (fileInfo) async {
 //                _launchURL(fileInfo.downloadPath);
-                FileInfoPop.showFileInfoDialog(context, fileInfo);
-              },
-              isShowLoading: true);
+            var filePathInfoRes = await FileInfoPop.show(context, fileInfo);
+            if (filePathInfoRes != null &&
+                filePathInfoRes is FilePathInfoRes) {
+              DownloadFilePrepareDialog.show(context, filePathInfoRes);
+            }
+
+          }, isShowLoading: true);
         },
         child: Row(
           mainAxisSize: MainAxisSize.max,
