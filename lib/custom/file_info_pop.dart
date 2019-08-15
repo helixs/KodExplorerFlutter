@@ -13,6 +13,8 @@ import 'package:kodproject/custom/pop.dart';
 
 //文件详细信息弹窗
 class FileInfoPop {
+  static const int OPEN_LOCAL = 1;
+  static const int DOWNLOAD = 2;
   static show(BuildContext context, FilePathInfoRes filePathInfoRes) async {
     return await showDialog(
         context: context,
@@ -25,10 +27,9 @@ class FileInfoPop {
 }
 
 class _FileInfoWidget extends StatelessWidget {
-  final FilePathInfoRes _filePathInfo;
   final List<FileKVInfo> _items;
 
-  _FileInfoWidget.create(this._filePathInfo)
+  _FileInfoWidget.create(FilePathInfoRes _filePathInfo)
       : _items = _filePathInfo.toItemDesc();
 
   @override
@@ -46,10 +47,16 @@ class _FileInfoWidget extends StatelessWidget {
         Row(
           children: <Widget>[
             Expanded(
+              child: Buttons.getGeneralRaisedButton("外部在线打开", onPressed: () {
+                Navigator.pop(context, FileInfoPop.OPEN_LOCAL);
+              }),
+            ),
+            Expanded(
               child: Buttons.getGeneralRaisedButton("下载", onPressed: () {
-                Navigator.pop(context, _filePathInfo);
+                Navigator.pop(context, FileInfoPop.DOWNLOAD);
               }),
             )
+
           ],
         )
       ],

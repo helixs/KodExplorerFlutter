@@ -144,28 +144,18 @@ class FileItemState extends LifeState<FileItem> {
     FileType type = FileTypeUtil.getFileType(widget._item.ext);
     IconData iconData = FileTypeUtil.getIconData(type);
     return InkWell(
-        onLongPress: () {
-          requestNetWorkOfState(
-              () async {
-                return await _getFileInfo(widget._item.path);
-              },
-              this,
-              successFun: (fileInfo) {
-                _launchURL(fileInfo.downloadPath);
-              },
-              isShowLoading: true);
-        },
         onTap: () {
           requestNetWorkOfState(
               () async => await _getFileInfo(widget._item.path), this,
               successFun: (fileInfo) async {
-//                _launchURL(fileInfo.downloadPath);
-            var filePathInfoRes = await FileInfoPop.show(context, fileInfo);
-            if (filePathInfoRes != null &&
-                filePathInfoRes is FilePathInfoRes) {
-              DownloadFilePrepareDialog.show(context, filePathInfoRes);
+            var code = await FileInfoPop.show(context, fileInfo);
+            if (code != null) {
+              if (code == FileInfoPop.DOWNLOAD) {
+                DownloadFilePrepareDialog.show(context, fileInfo);
+              } else if (code == FileInfoPop.OPEN_LOCAL) {
+                _launchURL(fileInfo.downloadPath);
+              }
             }
-
           }, isShowLoading: true);
         },
         child: Row(
