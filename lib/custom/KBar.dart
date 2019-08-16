@@ -21,6 +21,12 @@ class KAppBar{
       ],
     );
   }
+  static AppBar getDefaultBar(BuildContext buildContext,String titleName,{VoidCallback settingPress}){
+
+    return AppBar(
+      title: Text(titleName),
+    );
+  }
   static AppBar getFilePathTreeBar(BuildContext buildContext,String titleName,Widget widget,String path,{VoidCallback confirm}){
 
     return AppBar(

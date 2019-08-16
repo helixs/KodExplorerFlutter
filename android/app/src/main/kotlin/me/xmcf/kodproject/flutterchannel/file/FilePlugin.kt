@@ -1,10 +1,9 @@
-package me.xmcf.kodproject.flutterchannel
+package me.xmcf.kodproject.flutterchannel.file
 
 import android.content.Context
 import android.os.Environment
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
-import io.flutter.plugin.common.PluginRegistry
 import io.flutter.util.PathUtils
 
 class FilePlugin{

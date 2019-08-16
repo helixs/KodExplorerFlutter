@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kodproject/account/account_util.dart';
 import 'package:kodproject/custom/pop.dart';
 import 'package:toast/toast.dart';
 import 'package:kodproject/pages/childpage.dart';
@@ -20,7 +21,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends LifeState<HomePage> {
   List<FileTreeResData> _fileList = [];
 
-
   @override
   void onStart() {
     super.onStart();
@@ -31,10 +31,52 @@ class _HomePageState extends LifeState<HomePage> {
     }, isShowLoading: true);
   }
 
+  get _drawer => Drawer(
+          child: ListView(
+        padding: EdgeInsets.all(0),
+        children: <Widget>[
+          _accountHeader, // 可在这里替换自定义的header
+          ListTile(
+            title: Text('下载管理'),
+            leading: new CircleAvatar(
+              child: new Icon(Icons.school),
+            ),
+            onTap: () {
+//                Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            title: Text('设置'),
+            leading: new CircleAvatar(
+              child: new Icon(Icons.settings),
+            ),
+            onTap: () {
+//                Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            title: Text('退出账号'),
+            leading: new CircleAvatar(
+              child: new Icon(Icons.exit_to_app),
+            ),
+            onTap: () {
+              AccountUtil.logout(context);
+            },
+          ),
+        ],
+      ));
+
+  get _accountHeader => UserAccountsDrawerHeader(
+        accountName: Text("helloworld"),
+        accountEmail: Text("xxx@gmail.com"),
+        currentAccountPicture: CircleAvatar(),
+      );
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: KAppBar.getSettingBar(context, widget.title),
+      appBar: KAppBar.getDefaultBar(context, widget.title),
+      drawer: _drawer,
       body: Center(
           child: Column(
         mainAxisSize: MainAxisSize.max,
