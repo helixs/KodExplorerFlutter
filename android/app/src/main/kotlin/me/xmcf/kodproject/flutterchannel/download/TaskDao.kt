@@ -86,7 +86,42 @@ class TaskDao{
 
             return result
         }
+        fun queryTask(taskDbHelper:TaskDbHelper,taskId: String): TaskInfoRes? {
+            val db = taskDbHelper.readableDatabase
 
+            val whereClause =TaskTableColumns.COLUMN_NAME_TASK_ID + " = ?"
+            val whereArgs = arrayOf(taskId)
+
+            val cursor = db.query(
+                    TaskTableColumns.TABLE_NAME,
+                    QUERY_CLOUMS,
+                    whereClause,
+                    whereArgs,
+                    null, null,
+                    TaskTableColumns._ID + " DESC",
+                    "1"
+            )
+
+            var result: TaskInfoRes? = null
+            while (cursor.moveToNext()) {
+                result = parseCursor(cursor)
+            }
+            cursor.close()
+            return result
+        }
+
+        fun loadTasksWithRawQuery(taskDbHelper:TaskDbHelper,query: String): List<TaskInfoRes> {
+            val db = taskDbHelper.readableDatabase
+            val cursor = db.rawQuery(query, null)
+
+            val result = ArrayList<TaskInfoRes>()
+            while (cursor.moveToNext()) {
+                result.add(parseCursor(cursor))
+            }
+            cursor.close()
+
+            return result
+        }
         fun updateTask(taskDbHelper:TaskDbHelper,taskId: String, status: Int, progress: Int) {
             val db = taskDbHelper.writableDatabase
             val values = ContentValues()

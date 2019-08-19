@@ -15,12 +15,13 @@ class TaskDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, 
         private const val  DATABASE_VERSION = 1
         private var instance: TaskDbHelper? = null
         @Synchronized
-        fun getInstance(context: Context){
+        fun getInstance(context: Context):TaskDbHelper{
             if (instance == null){
                 if (instance == null) {
                     instance = TaskDbHelper(context.applicationContext)
                 }
             }
+            return instance !!
         }
         private const val SQL_CREATE_ENTRIES = (
                 "CREATE TABLE " + TaskTableColumns.TABLE_NAME + " (" +
