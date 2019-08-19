@@ -8,6 +8,7 @@ import '../model/file_path_res_entity.dart';
 import '../network/net_work_catch.dart';
 import 'package:kodproject/custom/pop.dart';
 import 'package:kodproject/network/httpmanager.dart';
+import '../plugin/downloader.dart';
 
 import '../life/life_state.dart';
 
@@ -147,11 +148,12 @@ class FileItemState extends LifeState<FileItem> {
         onTap: () {
           requestNetWorkOfState(
               () async => await _getFileInfo(widget._item.path), this,
-              successFun: (fileInfo) async {
+              successFun: (FilePathInfoRes fileInfo) async {
             var code = await FileInfoPop.show(context, fileInfo);
             if (code != null) {
               if (code == FileInfoPop.DOWNLOAD) {
                 DownloadFilePrepareDialog.show(context, fileInfo);
+
               } else if (code == FileInfoPop.OPEN_LOCAL) {
                 _launchURL(fileInfo.downloadPath);
               }

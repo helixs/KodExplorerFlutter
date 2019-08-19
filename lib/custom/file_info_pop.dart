@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:kodproject/life/life_state.dart';
 import 'package:kodproject/model/file_path_info_entity.dart';
 import 'package:flutter/services.dart';
@@ -170,6 +171,12 @@ class _DownloadPathState extends LifeState<_DownloadInfoWidget> {
     }
   }
 
+  download()async{
+    var ss = await FlutterDownloader.enqueue(url: _addressController.text,savedDir:_localPathController.text);
+
+    Pop.showToast(context, ss.toString());
+  }
+
   @override
   Widget build(BuildContext context) {
     _addressController.text = widget._downloadUrl;
@@ -224,7 +231,7 @@ class _DownloadPathState extends LifeState<_DownloadInfoWidget> {
           children: <Widget>[
             Expanded(
               child: Buttons.getGeneralRaisedButton("下载",
-                  onPressed:null),
+                  onPressed:download),
             )
           ],
         )
