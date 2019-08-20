@@ -21,14 +21,14 @@ void requestNetWorkOfState(Function requestFun,State state,{@required Function s
       }
       if(state.mounted){
         if(e.message.contains("accessToken error")){
-          Pop.showToast(state.context, "用户过期重新登录");
+          Pop.toast(state.context, "用户过期重新登录");
           await new Future.delayed(Duration(milliseconds:500));
           Navigator.of(state.context).pushAndRemoveUntil(
               MaterialPageRoute(builder: (context) {
                 return LoginPage();
               }), (Route<dynamic> route) => false);
         }else{
-          Pop.showToast(state.context, e.message);
+          Pop.toast(state.context, e.message);
         }
       }
 
@@ -37,13 +37,13 @@ void requestNetWorkOfState(Function requestFun,State state,{@required Function s
         Pop.dissLoading(state.context);
       }
       if(state.mounted){
-        Pop.showToast(state.context, e.message);
+        Pop.toast(state.context, e.message);
       }
     }catch(e){
       if(isShowLoading&&state.mounted){
         Pop.dissLoading(state.context);
       }
-      Pop.showToast(state.context, e.message);
+      Pop.toast(state.context, e.message);
     }
 
 }
@@ -56,12 +56,12 @@ void requestNetWorkOfBuildContext(Function function,BuildContext context,{bool i
     await function();
   }on KCodeException catch (e){
     if(context!=null){
-      Pop.showToast(context, e.message);
+      Pop.toast(context, e.message);
     }
 
   }on KNetException catch(e){
     if(context!=null){
-      Pop.showToast(context, e.message);
+      Pop.toast(context, e.message);
     }
   }finally{
     if(isShowLoading){

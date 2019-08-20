@@ -6,7 +6,6 @@ import 'package:kodproject/storage/KData.dart';
 import '../life/life_state.dart';
 import '../network/net_work_catch.dart';
 import 'package:kodproject/custom/pop.dart';
-import 'package:toast/toast.dart';
 
 //
 //可道云登录

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:kodproject/account/account_util.dart';
 import 'package:kodproject/custom/pop.dart';
-import 'package:toast/toast.dart';
 import 'package:kodproject/pages/childpage.dart';
 import '../custom/KBar.dart';
 import 'package:kodproject/network/httpmanager.dart';
 import '../life/life_state.dart';
 import '../model/file_tree_res_entity.dart';
 import '../network/net_work_catch.dart';
+import 'download_list.dart';
 
 class HomePage extends StatefulWidget {
   final String title = "主页";
@@ -18,8 +18,20 @@ class HomePage extends StatefulWidget {
   }
 }
 
+enum HomeBody{
+  //文件管理
+  FILES,
+  //下载管理
+  DOWNLOADS,
+  //设置
+  SETTING
+
+
+}
+
 class _HomePageState extends LifeState<HomePage> {
   List<FileTreeResData> _fileList = [];
+
 
   @override
   void onStart() {
@@ -42,13 +54,15 @@ class _HomePageState extends LifeState<HomePage> {
               child: new Icon(Icons.school),
             ),
             onTap: () {
-//                Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (context){
+                return DownloadManagerListPage();
+              }));
             },
           ),
           ListTile(
             title: Text('设置'),
             leading: new CircleAvatar(
-              child: new Icon(Icons.settings),
+              child: new Icon(Icons.settings,semanticLabel: "111",),
             ),
             onTap: () {
 //                Navigator.pop(context);

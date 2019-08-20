@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:kodproject/model/file_path_info_entity.dart';
-import 'package:toast/toast.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../custom/file_info_pop.dart';
 import '../file/file_type_util.dart';

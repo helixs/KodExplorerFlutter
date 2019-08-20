@@ -76,7 +76,7 @@ class _FileInfoItem extends StatelessWidget {
     if (_kvInfo.isDownloadUrl) {
       downloadPress = () {
         Clipboard.setData(new ClipboardData(text: _kvInfo.value));
-        Pop.showToast(context, "链接已经复制到剪贴板");
+        Pop.toast(context, "链接已经复制到剪贴板");
       };
     }
     return Row(
@@ -174,7 +174,7 @@ class _DownloadPathState extends LifeState<_DownloadInfoWidget> {
   download()async{
     var ss = await FlutterDownloader.enqueue(url: _addressController.text,savedDir:_localPathController.text);
 
-    Pop.showToast(context, ss.toString());
+    Pop.toast(context, ss.toString());
   }
 
   @override

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:toast/toast.dart';
+import 'package:oktoast/oktoast.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class Pop {
@@ -12,9 +12,8 @@ class Pop {
     ));
   }
 
-  static showToast(BuildContext context, String msg) {
-    Toast.show(msg, context,
-        duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
+  static toast(BuildContext context, String msg) {
+    showToast(msg,context: context);
   }
 
   static showDialogMsg(BuildContext context, String msg) {
