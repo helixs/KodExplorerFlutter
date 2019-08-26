@@ -1,11 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:kodproject/life/life_state.dart';
 import 'package:kodproject/model/file_path_info_entity.dart';
 import 'package:flutter/services.dart';
+import 'package:kodproject/pages/download_list.dart';
 import 'package:kodproject/pages/local_storage_browser.dart';
+import 'package:kodproject/plugin/downloader.dart';
 import 'package:kodproject/storage/KData.dart';
 import '../custom/Buttons.dart';
 import '../tools/permission_utils.dart';
@@ -172,9 +173,10 @@ class _DownloadPathState extends LifeState<_DownloadInfoWidget> {
   }
 
   download()async{
-    var ss = await FlutterDownloader.enqueue(url: _addressController.text,savedDir:_localPathController.text);
-
-    Pop.toast(context, ss.toString());
+    await FlutterDownloader.enqueue(url: _addressController.text,savedDir:_localPathController.text);
+    Navigator.pushReplacement(context, MaterialPageRoute(builder:(BuildContext context){
+      return DownloadManagerListPage();
+    } ));
   }
 
   @override
