@@ -91,7 +91,7 @@ class DownloadManagerListState extends LifeState<DownloadManagerListPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue[50],
+      backgroundColor: Colors.grey[200],
       body: NestedScrollView(
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
           return <Widget>[
@@ -158,6 +158,7 @@ class ItemTaskState extends State<ItemTaskPage> {
   void initState() {
     super.initState();
     _progress = widget.downloadTask.progress;
+    _status = widget.downloadTask.status;
     FlutterDownloader.registerCallback(
         (String id, DownloadTaskStatus status, int progress) {
       if (id == widget.downloadTask.taskId) {
@@ -169,91 +170,119 @@ class ItemTaskState extends State<ItemTaskPage> {
     });
   }
 
-
-  String _getStatus(DownloadTaskStatus status){
-    if(status==DownloadTaskStatus.undefined){
+  String _getStatus(DownloadTaskStatus status, int progress) {
+    if (status == DownloadTaskStatus.undefined) {
       return "未知";
     }
-    if(status==DownloadTaskStatus.canceled){
+    if (status == DownloadTaskStatus.canceled) {
       return "已取消";
     }
-    if(status==DownloadTaskStatus.complete){
+    if (status == DownloadTaskStatus.complete) {
       return "已完成";
     }
-    if(status==DownloadTaskStatus.enqueued){
+    if (status == DownloadTaskStatus.enqueued) {
       return "准备中";
     }
-    if(status==DownloadTaskStatus.paused){
+    if (status == DownloadTaskStatus.paused) {
       return "已暂停";
     }
-    if(status==DownloadTaskStatus.failed){
+    if (status == DownloadTaskStatus.failed) {
       return "出错";
     }
-    if(status==DownloadTaskStatus.running){
+    if (status == DownloadTaskStatus.running) {
       return "下载中";
     }
     return "未知";
   }
+
   @override
   Widget build(BuildContext context) {
-    String currentStatus =_getStatus(_status);
+    String currentStatus = _getStatus(_status, _progress);
+
     return Container(
-        color: Colors.white,
-        padding: EdgeInsets.only(top: 2, bottom: 2),
-        margin: EdgeInsets.only(bottom: 1),
-        child: Row(
-          mainAxisSize: MainAxisSize.max,
-          children: <Widget>[
-            Container(
-              width: 60,
-              height: 60,
-              padding: EdgeInsets.all(10),
-              child: Icon(
-                Icons.video_library,
-                color: Colors.blue,
-                size: 50,
-              ),
-            ),
-            Container(
-              width: 5,
-              height: 60,
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(widget.downloadTask.filename, maxLines: 2),
-                  Spacer(
-                    flex: 1,
+        margin: EdgeInsets.only(bottom: 5),
+        child: Card(
+            color: Colors.white,
+            elevation: 3,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(5.0))),
+            child: Stack(
+              children: <Widget>[
+                SizedBox.expand(
+                    child: ClipRRect(
+                  borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                  child: LinearProgressIndicator(
+                    value: _progress * 0.01,
+                    backgroundColor: Colors.white,
+                    valueColor: AlwaysStoppedAnimation(Colors.blue[100]),
                   ),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                )),
+                Container(
+                  padding: EdgeInsets.only(top: 2, bottom: 2),
+                  child: Row(
                     mainAxisSize: MainAxisSize.max,
                     children: <Widget>[
-                      Expanded(
-                        flex: 1,
-                        child: Text(_progress.toString()),
+                      Container(
+                        width: 60,
+                        height: 60,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.max,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Spacer(
+                              flex: 1,
+                            ),
+                            Expanded(flex:2,
+                                child: Icon(
+                                  Icons.play_arrow,
+                                  color: Colors.cyan,
+                                ),),
+
+                            Expanded(flex:2,
+                              child: Text(currentStatus),),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        width: 5,
+                        height: 60,
                       ),
                       Expanded(
-                        flex: 2,
-                        child: Text("创建时间:"),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(widget.downloadTask.filename, maxLines: 2),
+                            Spacer(flex: 1),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.max,
+                              children: <Widget>[
+                                Expanded(
+                                  flex: 1,
+                                  child: Text(currentStatus),
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                  child: Text(""),
+                                ),
+                                Text("详细信息")
+                              ],
+                            )
+                          ],
+                        ),
                       ),
-                      Text("详细信息")
+                      Container(
+                          width: 100,
+                          height: 50,
+                          child: Stack(
+                            alignment: AlignmentDirectional.center,
+                            children: <Widget>[Text(currentStatus)],
+                          )),
                     ],
-                  )
-                ],
-              ),
-            ),
-            Container(
-                width: 60,
-                height: 50,
-                child: Stack(
-                  alignment: AlignmentDirectional.center,
-                  children: <Widget>[
-                    Text(currentStatus)
-                  ],
-                )),
-          ],
-        ));
+                  ),
+                ),
+              ],
+            )));
   }
 }

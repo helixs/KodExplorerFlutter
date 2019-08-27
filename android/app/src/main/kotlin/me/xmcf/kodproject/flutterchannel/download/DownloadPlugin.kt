@@ -175,7 +175,7 @@ class DownloadPlugin private constructor(val context: Context, messenger: Binary
                     result.success(newTaskId)
                     sendUpdateProgress(newTaskId, TaskStatus.RUNNING, task.progress)
                     TaskDao.updateTask(dbHelper,taskId, newTaskId, TaskStatus.RUNNING, task.progress, false)
-                    WorkManager.getInstance().enqueue(request)
+                    WorkManager.getInstance(context).enqueue(request)
                 } else {
                     result.error("invalid_data", "not found partial downloaded data, this task cannot be resumed", null)
                 }
