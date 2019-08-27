@@ -16,7 +16,6 @@ import androidx.annotation.Nullable
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 import io.flutter.util.PathUtils.getFilesDir
@@ -24,9 +23,7 @@ import me.xmcf.kodproject.R
 import org.json.JSONException
 import org.json.JSONObject
 import vn.hunghd.flutterdownloader.DownloadStatus
-import java.io.BufferedInputStream
-import java.io.FileOutputStream
-import java.io.IOException
+import java.io.*
 import java.net.URLDecoder
 
 
@@ -51,22 +48,13 @@ class DownloadTaskWorker(private val context: Context, workerParams: WorkerParam
 
         const val TIMEOUT = 30 * 1000
 
-        private fun getDefaultFileName(httpURLConnectioned: HttpURLConnection): String {
-
-
-            //得到链接地址中的file路径
-            val urlFilePath = httpURLConnectioned.url.file
-            //得到url地址总文件名 file的separatorChar参数表示文件分离符
-            return urlFilePath.substring(urlFilePath.lastIndexOf(File.separatorChar) + 1)
-
-        }
     }
 
     private val builder: NotificationCompat.Builder by lazy {
         initNotificationBuild()
     }
-    private var  currentProgress  = 0
-    private var  mPrimaryId:Int?=null
+    private var currentProgress = 0
+    private var mPrimaryId: Int? = null
 
 
     override fun doWork(): Result {
@@ -82,9 +70,10 @@ class DownloadTaskWorker(private val context: Context, workerParams: WorkerParam
         Log.d(TAG, "DownloadWorker{url=$downloadUrl,filename=$fileName,savedDir=$saveDir,header=$headers,isResume=$isResume")
         return try {
             TaskDao.updateTask(TaskDbHelper.getInstance(context), id.toString(), TaskStatus.RUNNING, 0)
-            startDownloadFile(downloadUrl!!, saveDir!!, fileName,headers,isResume)
+            startDownloadFile(downloadUrl!!, saveDir!!, fileName, headers, isResume)
             Result.success()
         } catch (e: Exception) {
+            TaskDao.updateTask(TaskDbHelper.getInstance(context),id.toString(), TaskStatus.FAILED, currentProgress)
             Result.failure()
         }
 
@@ -96,127 +85,144 @@ class DownloadTaskWorker(private val context: Context, workerParams: WorkerParam
         val startTime = System.currentTimeMillis()
         var currentUrl = url;
         var currentURL = URL(currentUrl)
-        var httpUrlConnection: HttpURLConnection?
+        var httpUrlConnection: HttpURLConnection? = null
 
 
         //设置超时时间
         var responseCode: Int
         var location: String?
         val visited = HashMap<String, Int>()
-        loop@ while (true) {
-            if (!visited.containsKey(currentUrl)) {
-                visited[currentUrl] = 1
-            } else {
-                val times = visited[currentUrl] ?: 0
-                if (times > 3) {
-                    throw IOException("Stuck in redirect loop")
-                }
-                visited[url] = times + 1
-            }
-
-
-            currentURL = URL(currentUrl)
-            Log.d(TAG, "Open connection to $url")
-            httpUrlConnection = currentURL.openConnection() as HttpURLConnection
-            httpUrlConnection.also {
-                it.connectTimeout = TIMEOUT
-                it.readTimeout = TIMEOUT
-                //如果为 true，则协议自动执行重定向。
-                it.instanceFollowRedirects = false
-
-                //设置允许得到服务器的输入流,默认为true可以不用设置
-                it.doInput = true
-                //设置请求方法
-                it.requestMethod = "GET"
-                //设置请求的字符编码
-                it.setRequestProperty("Charset", "utf-8")
-
-                it.setRequestProperty("User-Agent", "Mozilla/5.0...")
-            }
-
-            // setup request headers if it is set
-            if (headers != null) {
-                setupHeaders(httpUrlConnection, headers)
-            }
-
-            // try to continue downloading a file from its partial downloaded data.
-            var downloadedBytes: Long = 0
-            if (isBreakpointDownload&&fileName!=null) {
-                downloadedBytes = setupPartialDownloadedDataHeader(httpUrlConnection, fileName, saveDir)
-            }
-            httpUrlConnection.connect()
-            responseCode = httpUrlConnection.responseCode
-            when (responseCode) {
-                HttpURLConnection.HTTP_MOVED_PERM, HttpURLConnection.HTTP_MOVED_TEMP -> {
-                    Log.d(TAG, "Response with redirection code")
-                    location = URLDecoder.decode(httpUrlConnection.getHeaderField("Location"), "UTF-8")
-                    val base = URL(url)
-                    val next = URL(base, location)  // Deal with relative URLs
-                    currentUrl = next.toString()
-                    Log.d(TAG, "New url: $url")
-                    continue@loop
-                }
-            }
-
-            break
-        }
-
-
-
-        if (responseCode == HttpURLConnection.HTTP_OK || (responseCode == HttpURLConnection.HTTP_PARTIAL && isBreakpointDownload) && !isStopped) {
-            val contentType = httpUrlConnection!!.contentType
-            //获取请求的内容总长度
-            val contentLength = httpUrlConnection.contentLength
-            Log.d(TAG, "Content-Type = $contentType")
-            Log.d(TAG, "Content-Length = $contentLength")
-            var currentFileName:String? =null
-            if (!isBreakpointDownload&&TextUtils.isEmpty(fileName)) {
-                // try to extract filename from HTTP headers if it is not given by user
-                if (fileName == null) {
-                    val disposition = httpUrlConnection.getHeaderField("Content-Disposition")
-                    Log.d(TAG, "Content-Disposition = " + disposition!!)
-                    if (disposition != null && disposition.isNotEmpty()) {
-                        val name = disposition!!.replaceFirst("(?i)^.*filename=\"?([^\"]+)\"?.*$".toRegex(), "$1")
-                        currentFileName =   URLDecoder.decode(name, "ISO-8859-1")
+        var outputStream:FileOutputStream? =null
+        var inputStream:InputStream?=null
+        var bfi:BufferedInputStream? =null
+        try {
+            loop@ while (true) {
+                if (!visited.containsKey(currentUrl)) {
+                    visited[currentUrl] = 1
+                } else {
+                    val times = visited[currentUrl] ?: 0
+                    if (times > 3) {
+                        throw IOException("Stuck in redirect loop")
                     }
-                    if (currentFileName == null || currentFileName.isEmpty()) {
-                        currentFileName  = url.substring(url.lastIndexOf("/") + 1)
+                    visited[url] = times + 1
+                }
+
+
+                currentURL = URL(currentUrl)
+                Log.d(TAG, "Open connection to $url")
+                httpUrlConnection = currentURL.openConnection() as HttpURLConnection
+                httpUrlConnection.also {
+                    it.connectTimeout = TIMEOUT
+                    it.readTimeout = TIMEOUT
+                    //如果为 true，则协议自动执行重定向。
+                    it.instanceFollowRedirects = false
+
+                    //设置允许得到服务器的输入流,默认为true可以不用设置
+                    it.doInput = true
+                    //设置请求方法
+                    it.requestMethod = "GET"
+                    //设置请求的字符编码
+                    it.setRequestProperty("Charset", "utf-8")
+
+                    it.setRequestProperty("User-Agent", "Mozilla/5.0...")
+                }
+
+                // setup request headers if it is set
+                if (headers != null) {
+                    setupHeaders(httpUrlConnection, headers)
+                }
+
+                // try to continue downloading a file from its partial downloaded data.
+                var downloadedBytes: Long = 0
+                if (isBreakpointDownload && fileName != null) {
+                    downloadedBytes = setupPartialDownloadedDataHeader(httpUrlConnection, fileName, saveDir)
+                }
+                httpUrlConnection.connect()
+                responseCode = httpUrlConnection.responseCode
+                when (responseCode) {
+                    HttpURLConnection.HTTP_MOVED_PERM, HttpURLConnection.HTTP_MOVED_TEMP -> {
+                        Log.d(TAG, "Response with redirection code")
+                        location = URLDecoder.decode(httpUrlConnection.getHeaderField("Location"), "UTF-8")
+                        val base = URL(url)
+                        val next = URL(base, location)  // Deal with relative URLs
+                        currentUrl = next.toString()
+                        Log.d(TAG, "New url: $url")
+                        continue@loop
                     }
                 }
-            }else{
-                currentFileName = fileName
+
+                break
             }
-            TaskDao.updateTask(TaskDbHelper.getInstance(context),id.toString(),currentFileName!!,contentType)
-            val file = File(saveDir, currentFileName)
-            //创建一个文件输出流
-            val outputStream = FileOutputStream(file,isBreakpointDownload)
-            //得到服务器响应的输入流
-            val inputStream = httpUrlConnection.inputStream
 
-            //创建缓冲输入流对象，相对于inputStream效率要高一些
-            val bfi = BufferedInputStream(inputStream)
-            //此处的len表示每次循环读取的内容长度
-            var len: Int
-            //已经读取的总长度
-            var readed = 0
-            //bytes是用于存储每次读取出来的内容
-            val bytes = ByteArray(1024)
-            do {
-                len = bfi.read(bytes)
-                if (len != -1) {
-                    break
+
+
+            if (responseCode == HttpURLConnection.HTTP_OK || (responseCode == HttpURLConnection.HTTP_PARTIAL && isBreakpointDownload) && !isStopped) {
+                val contentType = httpUrlConnection!!.contentType
+                //获取请求的内容总长度
+                val contentLength = httpUrlConnection.contentLength
+                Log.d(TAG, "Content-Type = $contentType")
+                Log.d(TAG, "Content-Length = $contentLength")
+                var currentFileName: String? = null
+                if (!isBreakpointDownload && TextUtils.isEmpty(fileName)) {
+                    // try to extract filename from HTTP headers if it is not given by user
+                    if (fileName == null) {
+                        val disposition = httpUrlConnection.getHeaderField("Content-Disposition")
+                        Log.d(TAG, "Content-Disposition = " + disposition!!)
+                        if (disposition != null && disposition.isNotEmpty()) {
+                            val name = disposition!!.replaceFirst("(?i)^.*filename=\"?([^\"]+)\"?.*$".toRegex(), "$1")
+                            currentFileName = URLDecoder.decode(name, "ISO-8859-1")
+                        }
+                        if (currentFileName == null || currentFileName.isEmpty()) {
+                            currentFileName = url.substring(url.lastIndexOf("/") + 1)
+                        }
+                    }
+                } else {
+                    currentFileName = fileName
                 }
-                readed += len
-                //通过文件输出流写入从服务器中读取的数据
-                outputStream.write(bytes, 0, len)
-                val progress = (readed.toFloat() / contentLength).toInt()
-                updateNotification(currentFileName, DownloadStatus.RUNNING,progress,null)
+                TaskDao.updateTask(TaskDbHelper.getInstance(context), id.toString(), currentFileName!!, contentType)
+                val file = File(saveDir, currentFileName)
+                //创建一个文件输出流
+                outputStream = FileOutputStream(file, isBreakpointDownload)
+                //得到服务器响应的输入流
+                inputStream = httpUrlConnection.inputStream
 
-            } while (true)
-            //关闭打开的流对象
-            outputStream.close()
-            inputStream.close()
-            bfi.close()
+                //创建缓冲输入流对象，相对于inputStream效率要高一些
+                bfi = BufferedInputStream(inputStream)
+                //此处的len表示每次循环读取的内容长度
+                var len: Int
+                //已经读取的总长度
+                var readed = 0
+                //bytes是用于存储每次读取出来的内容
+                val bytes = ByteArray(1024)
+                do {
+                    len = bfi.read(bytes)
+                    if (len == -1) {
+                        break
+                    }
+                    readed += len
+                    //通过文件输出流写入从服务器中读取的数据
+                    outputStream.write(bytes, 0, len)
+                    val progress = (readed.toFloat() / contentLength).toInt()
+                    updateNotification(currentFileName, DownloadStatus.RUNNING, progress, null)
+
+                } while (true)
+                val task = TaskDao.queryTask(TaskDbHelper.getInstance(context), id.toString())!!
+                val progress = if (isStopped && task.resumable) currentProgress else 100
+                val status = if (isStopped) if (task.resumable) DownloadStatus.PAUSED else DownloadStatus.CANCELED else DownloadStatus.COMPLETE
+                TaskDao.updateTask(TaskDbHelper.getInstance(context), id.toString(),status,progress)
+                //关闭打开的流对象
+                outputStream.close()
+                inputStream.close()
+                bfi.close()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            TaskDao.updateTask(TaskDbHelper.getInstance(context),id.toString(), TaskStatus.FAILED, currentProgress)
+        } finally {
+            bfi?.close()
+            inputStream?.close()
+            outputStream?.close()
+            httpUrlConnection?.disconnect()
         }
     }
 
@@ -252,7 +258,7 @@ class DownloadTaskWorker(private val context: Context, workerParams: WorkerParam
     }
 
     private fun sendProgress(status: Int, progress: Int) {
-        if (progress==currentProgress){
+        if (progress == currentProgress) {
             return
         }
         currentProgress = progress
@@ -263,7 +269,7 @@ class DownloadTaskWorker(private val context: Context, workerParams: WorkerParam
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
     }
 
-    private fun initNotificationBuild():NotificationCompat.Builder{
+    private fun initNotificationBuild(): NotificationCompat.Builder {
         // Make a channel if necessary
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Create the NotificationChannel, but only on API 26+ because
@@ -311,11 +317,13 @@ class DownloadTaskWorker(private val context: Context, workerParams: WorkerParam
 
         // Show the notification
         if (shouldUpdate) {
-            NotificationManagerCompat.from(context).notify(mPrimaryId?:getPrimaryId(), builder.build())
+            NotificationManagerCompat.from(context).notify(mPrimaryId
+                    ?: getPrimaryId(), builder.build())
         }
     }
-    private fun getPrimaryId():Int{
-        val task = TaskDao.queryTask(TaskDbHelper.getInstance(context),id.toString())
+
+    private fun getPrimaryId(): Int {
+        val task = TaskDao.queryTask(TaskDbHelper.getInstance(context), id.toString())
         return task!!.primaryId
     }
 }
