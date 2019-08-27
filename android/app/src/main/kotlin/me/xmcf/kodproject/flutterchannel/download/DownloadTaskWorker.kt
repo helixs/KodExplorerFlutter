@@ -202,7 +202,7 @@ class DownloadTaskWorker(private val context: Context, workerParams: WorkerParam
                     readed += len
                     //通过文件输出流写入从服务器中读取的数据
                     outputStream.write(bytes, 0, len)
-                    val progress = (readed.toFloat() / contentLength).toInt()
+                    val progress = (readed.toFloat() *100/ contentLength).toInt()
                     updateNotification(currentFileName, DownloadStatus.RUNNING, progress, null)
 
                 } while (true)
@@ -210,6 +210,7 @@ class DownloadTaskWorker(private val context: Context, workerParams: WorkerParam
                 val progress = if (isStopped && task.resumable) currentProgress else 100
                 val status = if (isStopped) if (task.resumable) DownloadStatus.PAUSED else DownloadStatus.CANCELED else DownloadStatus.COMPLETE
                 TaskDao.updateTask(TaskDbHelper.getInstance(context), id.toString(),status,progress)
+                updateNotification(currentFileName, status, progress, null)
                 //关闭打开的流对象
                 outputStream.close()
                 inputStream.close()

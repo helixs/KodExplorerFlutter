@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kodproject/custom/KBar.dart';
 import 'package:kodproject/life/life_state.dart';
+import 'package:kodproject/plugin/downloader.dart';
 
 class DownloadManagerListPage extends StatefulWidget {
   final String _title = "下载管理";
@@ -22,6 +23,8 @@ class DownloadManagerListState extends LifeState<DownloadManagerListPage>
     "已完成": _TASK_TAB.DOWNLOADED
   };
 
+  List<DownloadTask> _allTasks = [];
+
   @override
   void initState() {
     super.initState();
@@ -30,6 +33,14 @@ class DownloadManagerListState extends LifeState<DownloadManagerListPage>
       var index = _tabController.index;
       var previewIndex = _tabController.previousIndex;
       print('index:$index, preview:$previewIndex');
+    });
+    _queryList();
+  }
+
+  void _queryList() async {
+    List<DownloadTask> tasks = await FlutterDownloader.loadTasks();
+    setState(() {
+      _allTasks = tasks;
     });
   }
 
@@ -42,7 +53,6 @@ class DownloadManagerListState extends LifeState<DownloadManagerListPage>
   List<Tab> _getTabs() {
     List<Tab> tabs = [];
     _TABS.forEach((name, tab) {
-
       tabs.add(Tab(text: name, icon: Icon(Icons.apps)));
     });
     return tabs;
@@ -65,9 +75,9 @@ class DownloadManagerListState extends LifeState<DownloadManagerListPage>
                 itemExtent: 80.0,
                 delegate: SliverChildBuilderDelegate(
                   (BuildContext context, int index) {
-                    return new ItemTaskPage();
+                    return new ItemTaskPage(_allTasks[index]);
                   },
-                  childCount: 50,
+                  childCount: _allTasks.length,
                 ),
               )
             ],
@@ -118,22 +128,78 @@ class DownloadManagerListState extends LifeState<DownloadManagerListPage>
     );
   }
 
-  ListView _buildList(int num) {
-    return ListView.builder(
-      shrinkWrap: true,
-      itemBuilder: (BuildContext context, int index) {
-        return ItemTaskPage();
-      },
-      itemCount: num,
-    );
+//  ListView _buildList(int num) {
+//    return ListView.builder(
+//      shrinkWrap: true,
+//      itemBuilder: (BuildContext context, int index) {
+//        return ItemTaskPage();
+//      },
+//      itemCount: num,
+//    );
+//  }
+}
+
+class ItemTaskPage extends StatefulWidget {
+  final DownloadTask downloadTask;
+
+  const ItemTaskPage(this.downloadTask, {Key key}) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() {
+    return ItemTaskState();
   }
 }
 
-class ItemTaskPage extends StatelessWidget {
+class ItemTaskState extends State<ItemTaskPage> {
+  int _progress = 0;
+  DownloadTaskStatus _status = DownloadTaskStatus.undefined;
+
+  @override
+  void initState() {
+    super.initState();
+    _progress = widget.downloadTask.progress;
+    FlutterDownloader.registerCallback(
+        (String id, DownloadTaskStatus status, int progress) {
+      if (id == widget.downloadTask.taskId) {
+        setState(() {
+          _progress = progress;
+          _status = status;
+        });
+      }
+    });
+  }
+
+
+  String _getStatus(DownloadTaskStatus status){
+    if(status==DownloadTaskStatus.undefined){
+      return "未知";
+    }
+    if(status==DownloadTaskStatus.canceled){
+      return "已取消";
+    }
+    if(status==DownloadTaskStatus.complete){
+      return "已完成";
+    }
+    if(status==DownloadTaskStatus.enqueued){
+      return "准备中";
+    }
+    if(status==DownloadTaskStatus.paused){
+      return "已暂停";
+    }
+    if(status==DownloadTaskStatus.failed){
+      return "出错";
+    }
+    if(status==DownloadTaskStatus.running){
+      return "下载中";
+    }
+    return "未知";
+  }
   @override
   Widget build(BuildContext context) {
+    String currentStatus =_getStatus(_status);
     return Container(
         color: Colors.white,
+        padding: EdgeInsets.only(top: 2, bottom: 2),
         margin: EdgeInsets.only(bottom: 1),
         child: Row(
           mainAxisSize: MainAxisSize.max,
@@ -156,7 +222,7 @@ class ItemTaskPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text("你是一头小毛驴", maxLines: 2),
+                  Text(widget.downloadTask.filename, maxLines: 2),
                   Spacer(
                     flex: 1,
                   ),
@@ -166,7 +232,7 @@ class ItemTaskPage extends StatelessWidget {
                     children: <Widget>[
                       Expanded(
                         flex: 1,
-                        child: Text("大小:"),
+                        child: Text(_progress.toString()),
                       ),
                       Expanded(
                         flex: 2,
@@ -179,13 +245,14 @@ class ItemTaskPage extends StatelessWidget {
               ),
             ),
             Container(
-              width: 60,
-              height: 50,
-              child: Icon(
-                Icons.video_library,
-                color: Colors.blue,
-              ),
-            ),
+                width: 60,
+                height: 50,
+                child: Stack(
+                  alignment: AlignmentDirectional.center,
+                  children: <Widget>[
+                    Text(currentStatus)
+                  ],
+                )),
           ],
         ));
   }
