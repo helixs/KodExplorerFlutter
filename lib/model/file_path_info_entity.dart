@@ -1,8 +1,8 @@
 
+import 'package:kodproject/tools/calc_size.dart';
+
 class FilePathInfoRes {
-	static const KB = 1024;
-	static const MB = 1024*1024;
-	static const GB = 1024*1024*1024;
+
 	//扩展名
 	String ext;
 	////最后访问时间
@@ -66,18 +66,9 @@ class FilePathInfoRes {
 //		data['ext'] = this.ext;
 		kvs.add(FileKVInfo('名称',this.name));
 		kvs.add(FileKVInfo('外链地址\n(长按复制)',this.downloadPath,isDownloadUrl: true));
-		if(size<KB){
-			kvs.add(FileKVInfo('大小',"${this.size}Bytes"));
-		}else if(size>=KB&&size<MB){
-			kvs.add(FileKVInfo('大小',"${(this.size/KB).toStringAsFixed(2)}Kb"));
-		}else if(size>=MB&&size<GB){
-			kvs.add(FileKVInfo('大小',"${(this.size/MB).toStringAsFixed(2)}Mb"));
-		}else{
-//			data['大小'] = "${this.size/MB}Gb";
-			kvs.add(FileKVInfo('大小',"${(this.size/GB).toStringAsFixed(2)}Gb"));
-		}
-//		data['创建时间'] = this.ctime.toString();
 
+//		data['创建时间'] = this.ctime.toString();
+			kvs.add(FileKVInfo('大小',CalcSize.getSizeToString(size,true)));
 			kvs.add(FileKVInfo('创建时间',_getTime(this.ctime)));
 			kvs.add(FileKVInfo('修改时间',_getTime(this.mtime)));
 			kvs.add(FileKVInfo('最后访问',_getTime(this.atime)));

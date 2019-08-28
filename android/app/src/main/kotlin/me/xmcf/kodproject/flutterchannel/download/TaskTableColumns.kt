@@ -10,6 +10,8 @@ interface TaskTableColumns:BaseColumns{
        const val COLUMN_NAME_TASK_ID = "task_id"
        const val COLUMN_NAME_STATUS = "status"
        const val COLUMN_NAME_PROGRESS = "progress"
+       const val COLUMN_NAME_ALL_LENGTH = "all_length"
+       const val COLUMN_NAME_CURRENT_LENGTH = "current_length"
        const val COLUMN_NAME_URL = "url"
        const val COLUMN_NAME_SAVED_DIR = "saved_dir"
        const val COLUMN_NAME_FILE_NAME = "file_name"

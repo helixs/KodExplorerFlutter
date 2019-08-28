@@ -45,6 +45,8 @@ class DownloadTaskWorker(private val context: Context, workerParams: WorkerParam
         const val EXTRA_ID = "id"
         const val EXTRA_PROGRESS = "progress"
         const val EXTRA_STATUS = "status"
+        const val EXTRA_ALL_LENGTH = "allLength"
+        const val EXTRA_CURRENT_LENGTH = "currentLength"
 
         const val TIMEOUT = 30 * 1000
 
@@ -91,6 +93,8 @@ class DownloadTaskWorker(private val context: Context, workerParams: WorkerParam
         //设置超时时间
         var responseCode: Int
         var location: String?
+
+        var lastloadedBytes: Long=0
         val visited = HashMap<String, Int>()
         var outputStream:FileOutputStream? =null
         var inputStream:InputStream?=null
@@ -133,9 +137,8 @@ class DownloadTaskWorker(private val context: Context, workerParams: WorkerParam
                 }
 
                 // try to continue downloading a file from its partial downloaded data.
-                var downloadedBytes: Long = 0
                 if (isBreakpointDownload && fileName != null) {
-                    downloadedBytes = setupPartialDownloadedDataHeader(httpUrlConnection, fileName, saveDir)
+                    lastloadedBytes = setupPartialDownloadedDataHeader(httpUrlConnection, fileName, saveDir)
                 }
                 httpUrlConnection.connect()
                 responseCode = httpUrlConnection.responseCode
@@ -179,7 +182,7 @@ class DownloadTaskWorker(private val context: Context, workerParams: WorkerParam
                 } else {
                     currentFileName = fileName
                 }
-                TaskDao.updateTask(TaskDbHelper.getInstance(context), id.toString(), currentFileName!!, contentType)
+                TaskDao.updateTask(TaskDbHelper.getInstance(context), id.toString(), currentFileName!!, contentType,allLength = contentLength.toLong())
                 val file = File(saveDir, currentFileName)
                 //创建一个文件输出流
                 outputStream = FileOutputStream(file, isBreakpointDownload)
@@ -191,7 +194,7 @@ class DownloadTaskWorker(private val context: Context, workerParams: WorkerParam
                 //此处的len表示每次循环读取的内容长度
                 var len: Int
                 //已经读取的总长度
-                var readed = 0
+                var readed = lastloadedBytes
                 //bytes是用于存储每次读取出来的内容
                 val bytes = ByteArray(1024)
                 do {
@@ -203,18 +206,14 @@ class DownloadTaskWorker(private val context: Context, workerParams: WorkerParam
                     //通过文件输出流写入从服务器中读取的数据
                     outputStream.write(bytes, 0, len)
                     val progress = (readed.toFloat() *100/ contentLength).toInt()
-                    updateNotification(currentFileName, DownloadStatus.RUNNING, progress, null)
+                    updateNotification(currentFileName, DownloadStatus.RUNNING, progress, null,currentLength=readed,allLength = contentLength.toLong())
 
                 } while (true)
                 val task = TaskDao.queryTask(TaskDbHelper.getInstance(context), id.toString())!!
                 val progress = if (isStopped && task.resumable) currentProgress else 100
                 val status = if (isStopped) if (task.resumable) DownloadStatus.PAUSED else DownloadStatus.CANCELED else DownloadStatus.COMPLETE
-                TaskDao.updateTask(TaskDbHelper.getInstance(context), id.toString(),status,progress)
-                updateNotification(currentFileName, status, progress, null)
-                //关闭打开的流对象
-                outputStream.close()
-                inputStream.close()
-                bfi.close()
+                TaskDao.updateTask(TaskDbHelper.getInstance(context), id.toString(),status,progress,currentLength=readed,allLength = contentLength.toLong())
+                updateNotification(currentFileName, status, progress, null,currentLength=readed,allLength = contentLength.toLong())
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -258,7 +257,7 @@ class DownloadTaskWorker(private val context: Context, workerParams: WorkerParam
         }
     }
 
-    private fun sendProgress(status: Int, progress: Int) {
+    private fun sendProgress(status: Int, progress: Int,currentLength:Long,allLength:Long) {
         if (progress == currentProgress) {
             return
         }
@@ -267,6 +266,8 @@ class DownloadTaskWorker(private val context: Context, workerParams: WorkerParam
         intent.putExtra(EXTRA_ID, id.toString())
         intent.putExtra(EXTRA_STATUS, status)
         intent.putExtra(EXTRA_PROGRESS, progress)
+        intent.putExtra(EXTRA_ALL_LENGTH, allLength)
+        intent.putExtra(EXTRA_CURRENT_LENGTH, currentLength)
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
     }
 
@@ -292,7 +293,7 @@ class DownloadTaskWorker(private val context: Context, workerParams: WorkerParam
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
     }
 
-    private fun updateNotification(fileName: String, status: Int, progress: Int, @Nullable intent: PendingIntent?) {
+    private fun updateNotification(fileName: String, status: Int, progress: Int, @Nullable intent: PendingIntent?,currentLength:Long,allLength:Long) {
         builder.setContentTitle(fileName)
         builder.setContentIntent(intent)
         var shouldUpdate = false
@@ -301,7 +302,7 @@ class DownloadTaskWorker(private val context: Context, workerParams: WorkerParam
             shouldUpdate = true
             builder.setContentText(if (progress == 0) "已开始" else "下载中")
                     .setProgress(100, progress, progress == 0)
-            sendProgress(TaskStatus.RUNNING, progress)
+            sendProgress(TaskStatus.RUNNING, progress,currentLength,allLength)
         } else if (status == TaskStatus.CANCELED) {
             shouldUpdate = true
             builder.setContentText("已取消").setProgress(0, 0, false)

@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:kodproject/custom/KBar.dart';
 import 'package:kodproject/custom/pop.dart';
 import 'package:kodproject/life/life_state.dart';
-import '../file/file_utils.dart';
+import '../file/file_path_utils.dart';
 import 'package:path/path.dart';
 
 //本地文件浏览器，成功返回Directory

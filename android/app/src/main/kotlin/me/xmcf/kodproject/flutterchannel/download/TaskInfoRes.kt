@@ -26,5 +26,10 @@ data class TaskInfoRes(
         //打开通知栏文件
         var openFileFromNotification: Boolean = false,
         //任务创建时间
-        var timeCreated: Long = 0
+        var timeCreated: Long = 0,
+        //文件总大小
+        var allLength: Long = 0,
+        //文件当前大小
+        var currentLength: Long = 0
+
 )

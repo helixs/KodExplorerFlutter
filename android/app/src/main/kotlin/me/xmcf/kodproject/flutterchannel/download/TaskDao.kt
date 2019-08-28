@@ -12,6 +12,8 @@ class TaskDao{
                 TaskTableColumns._ID,
                 TaskTableColumns.COLUMN_NAME_TASK_ID,
                 TaskTableColumns.COLUMN_NAME_PROGRESS,
+                TaskTableColumns.COLUMN_NAME_ALL_LENGTH,
+                TaskTableColumns.COLUMN_NAME_CURRENT_LENGTH,
                 TaskTableColumns.COLUMN_NAME_STATUS,
                 TaskTableColumns.COLUMN_NAME_URL,
                 TaskTableColumns.COLUMN_NAME_FILE_NAME,
@@ -28,6 +30,8 @@ class TaskDao{
             val taskId = cursor.getString(cursor.getColumnIndexOrThrow(TaskTableColumns.COLUMN_NAME_TASK_ID))
             val status = cursor.getInt(cursor.getColumnIndexOrThrow(TaskTableColumns.COLUMN_NAME_STATUS))
             val progress = cursor.getInt(cursor.getColumnIndexOrThrow(TaskTableColumns.COLUMN_NAME_PROGRESS))
+            val allLength = cursor.getLong(cursor.getColumnIndexOrThrow(TaskTableColumns.COLUMN_NAME_ALL_LENGTH))
+            val currentLength = cursor.getLong(cursor.getColumnIndexOrThrow(TaskTableColumns.COLUMN_NAME_CURRENT_LENGTH))
             val url = cursor.getString(cursor.getColumnIndexOrThrow(TaskTableColumns.COLUMN_NAME_URL))
             val filename = cursor.getString(cursor.getColumnIndexOrThrow(TaskTableColumns.COLUMN_NAME_FILE_NAME))
             val savedDir = cursor.getString(cursor.getColumnIndexOrThrow(TaskTableColumns.COLUMN_NAME_SAVED_DIR))
@@ -38,10 +42,10 @@ class TaskDao{
             val clickToOpenDownloadedFile = cursor.getShort(cursor.getColumnIndexOrThrow(TaskTableColumns.COLUMN_NAME_OPEN_FILE_FROM_NOTIFICATION)).toInt()
             val timeCreated = cursor.getLong(cursor.getColumnIndexOrThrow(TaskTableColumns.COLUMN_NAME_TIME_CREATED))
             return TaskInfoRes(primaryId, taskId, status, progress, url, filename, savedDir, headers,
-                    mimeType, resumable == 1, showNotification == 1, clickToOpenDownloadedFile == 1, timeCreated)
+                    mimeType, resumable == 1, showNotification == 1, clickToOpenDownloadedFile == 1, timeCreated,allLength=allLength,currentLength = currentLength)
         }
         fun insertOrUpdateNewTask(taskDbHelper:TaskDbHelper,taskId: String, url: String, status: Int, progress: Int, fileName: String,
-                                  savedDir: String, headers: String?, showNotification: Boolean, openFileFromNotification: Boolean) {
+                                  savedDir: String, headers: String?, showNotification: Boolean, openFileFromNotification: Boolean,allLength:Long =0,currentLength:Long =0) {
             val db = taskDbHelper.writableDatabase
 
             val values = ContentValues()
@@ -51,6 +55,8 @@ class TaskDao{
             values.put(TaskTableColumns.COLUMN_NAME_PROGRESS, progress)
             values.put(TaskTableColumns.COLUMN_NAME_FILE_NAME, fileName)
             values.put(TaskTableColumns.COLUMN_NAME_SAVED_DIR, savedDir)
+            values.put(TaskTableColumns.COLUMN_NAME_ALL_LENGTH, allLength)
+            values.put(TaskTableColumns.COLUMN_NAME_CURRENT_LENGTH, currentLength)
             values.put(TaskTableColumns.COLUMN_NAME_HEADERS, headers)
             values.put(TaskTableColumns.COLUMN_NAME_MIME_TYPE, headers ?: "unknown")
             values.put(TaskTableColumns.COLUMN_NAME_SHOW_NOTIFICATION, if (showNotification) 1 else 0)
@@ -122,11 +128,18 @@ class TaskDao{
 
             return result
         }
-        fun updateTask(taskDbHelper:TaskDbHelper,taskId: String, status: Int, progress: Int) {
+        fun updateTask(taskDbHelper:TaskDbHelper,taskId: String, status: Int, progress: Int,allLength: Long?=null,currentLength: Long?=null) {
             val db = taskDbHelper.writableDatabase
             val values = ContentValues()
             values.put(TaskTableColumns.COLUMN_NAME_STATUS, status)
             values.put(TaskTableColumns.COLUMN_NAME_PROGRESS, progress)
+            if (allLength!=null){
+                values.put(TaskTableColumns.COLUMN_NAME_ALL_LENGTH, allLength)
+
+            }
+            if (currentLength!=null){
+                values.put(TaskTableColumns.COLUMN_NAME_CURRENT_LENGTH, currentLength)
+            }
 
             db.beginTransaction()
             try {
@@ -139,7 +152,7 @@ class TaskDao{
             }
         }
 
-        fun updateTask(taskDbHelper:TaskDbHelper,currentTaskId: String, newTaskId: String, status: Int, progress: Int, resumable: Boolean) {
+        fun updateTask(taskDbHelper:TaskDbHelper,currentTaskId: String, newTaskId: String, status: Int, progress: Int, resumable: Boolean,allLength: Long?=null,currentLength: Long?=null) {
             val db = taskDbHelper.writableDatabase
 
             val values = ContentValues()
@@ -148,7 +161,13 @@ class TaskDao{
             values.put(TaskTableColumns.COLUMN_NAME_PROGRESS, progress)
             values.put(TaskTableColumns.COLUMN_NAME_RESUMABLE, if (resumable) 1 else 0)
             values.put(TaskTableColumns.COLUMN_NAME_TIME_CREATED, System.currentTimeMillis())
+            if (allLength!=null){
+                values.put(TaskTableColumns.COLUMN_NAME_ALL_LENGTH, allLength)
 
+            }
+            if (currentLength!=null){
+                values.put(TaskTableColumns.COLUMN_NAME_CURRENT_LENGTH, currentLength)
+            }
             db.beginTransaction()
             try {
                 db.update(TaskTableColumns.TABLE_NAME, values, TaskTableColumns.COLUMN_NAME_TASK_ID + " = ?", arrayOf(currentTaskId))
@@ -160,12 +179,18 @@ class TaskDao{
             }
         }
 
-        fun updateTask(taskDbHelper:TaskDbHelper,taskId: String, resumable: Boolean) {
+        fun updateTask(taskDbHelper:TaskDbHelper,taskId: String, resumable: Boolean,allLength: Long?=null,currentLength: Long?=null) {
             val db = taskDbHelper.writableDatabase
 
             val values = ContentValues()
             values.put(TaskTableColumns.COLUMN_NAME_RESUMABLE, if (resumable) 1 else 0)
+            if (allLength!=null){
+                values.put(TaskTableColumns.COLUMN_NAME_ALL_LENGTH, allLength)
 
+            }
+            if (currentLength!=null){
+                values.put(TaskTableColumns.COLUMN_NAME_CURRENT_LENGTH, currentLength)
+            }
             db.beginTransaction()
             try {
                 db.update(TaskTableColumns.TABLE_NAME, values, TaskTableColumns.COLUMN_NAME_TASK_ID + " = ?", arrayOf(taskId))
@@ -177,13 +202,18 @@ class TaskDao{
             }
         }
 
-        fun updateTask(taskDbHelper:TaskDbHelper,taskId: String, filename: String, mimeType: String) {
+        fun updateTask(taskDbHelper:TaskDbHelper,taskId: String, filename: String, mimeType: String,allLength: Long?=null,currentLength: Long?=null) {
             val db = taskDbHelper.writableDatabase
 
             val values = ContentValues()
             values.put(TaskTableColumns.COLUMN_NAME_FILE_NAME, filename)
             values.put(TaskTableColumns.COLUMN_NAME_MIME_TYPE, mimeType)
-
+            if (allLength!=null){
+                values.put(TaskTableColumns.COLUMN_NAME_ALL_LENGTH, allLength)
+            }
+            if (currentLength!=null){
+                values.put(TaskTableColumns.COLUMN_NAME_CURRENT_LENGTH, currentLength)
+            }
             db.beginTransaction()
             try {
                 db.update(TaskTableColumns.TABLE_NAME, values, TaskTableColumns.COLUMN_NAME_TASK_ID + " = ?", arrayOf(taskId))

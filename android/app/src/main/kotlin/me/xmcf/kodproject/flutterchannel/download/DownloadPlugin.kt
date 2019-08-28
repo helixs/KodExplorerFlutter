@@ -41,15 +41,19 @@ class DownloadPlugin private constructor(val context: Context, messenger: Binary
             val id = intent.getStringExtra(DownloadTaskWorker.EXTRA_ID)
             val progress = intent.getIntExtra(DownloadTaskWorker.EXTRA_PROGRESS, 0)
             val status = intent.getIntExtra(DownloadTaskWorker.EXTRA_STATUS, TaskStatus.UNDEFINED)
-            sendUpdateProgress(id, status, progress)
+            val allLength = intent.getLongExtra(DownloadTaskWorker.EXTRA_ALL_LENGTH, 0)
+            val currentLength = intent.getLongExtra(DownloadTaskWorker.EXTRA_CURRENT_LENGTH, 0)
+            sendUpdateProgress(id, status, progress,allLength=allLength,currentLength = currentLength)
         }
     }
 
-    private fun sendUpdateProgress(id: String, status: Int, progress: Int) {
-        val args = HashMap<String, Any>()
+    private fun sendUpdateProgress(id: String, status: Int, progress: Int,currentLength:Long?=null,allLength:Long?=null) {
+        val args = HashMap<String, Any?>()
         args["task_id"] = id
         args["status"] = status
         args["progress"] = progress
+        args["current_length"] = currentLength
+        args["all_length"] = allLength
         flutterChannel.invokeMethod("updateProgress", args)
     }
 
@@ -217,6 +221,8 @@ class DownloadPlugin private constructor(val context: Context, messenger: Binary
             item["file_name"] = task.filename
             item["saved_dir"] = task.savedDir
             item["time_created"] = task.timeCreated
+            item["current_length"] = task.currentLength
+            item["all_length"] = task.allLength
             array.add(item)
         }
         result.success(array)
@@ -233,6 +239,8 @@ class DownloadPlugin private constructor(val context: Context, messenger: Binary
             item["file_name"] = task.filename
             item["saved_dir"] = task.savedDir
             item["time_created"] = task.timeCreated
+            item["current_length"] = task.currentLength
+            item["all_length"] = task.allLength
             array.add(item)
         }
         result.success(array)

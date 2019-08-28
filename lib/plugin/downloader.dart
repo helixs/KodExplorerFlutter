@@ -28,7 +28,7 @@ import 'package:flutter/services.dart';
 /// * `progress`: current progress value of a download task, the value is in
 /// range of 0 and 100
 ///
-typedef void DownloadCallback(String id, DownloadTaskStatus status, int progress);
+typedef void DownloadCallback(String id, DownloadTaskStatus status, int progress,{int currentLength,int allLength});
 
 ///
 /// A class defines a set of possible statuses of a download task
@@ -56,6 +56,17 @@ class DownloadTaskStatus {
   static const failed = const DownloadTaskStatus._internal(4);
   static const canceled = const DownloadTaskStatus._internal(5);
   static const paused = const DownloadTaskStatus._internal(6);
+}
+class _Args{
+  static const  TASK_ID = "task_id";
+  static const  PROGRESS = "progress";
+  static const  STATUS = "status";
+  static const  URL = "url";
+  static const  FILE_NAME = "file_name";
+  static const  SAVED_DIR = "saved_dir";
+  static const  TIME_CREATED = "time_created";
+  static const  CURRENT_LENGTH = "current_length";
+  static const  ALL_LENGTH = "all_length";
 }
 
 ///
@@ -169,12 +180,12 @@ class FlutterDownloader {
       List<dynamic> result = await platform.invokeMethod('loadTasks');
       return result
           .map((item) => new DownloadTask(
-              taskId: item['task_id'],
-              status: DownloadTaskStatus._internal(item['status']),
-              progress: item['progress'],
-              url: item['url'],
-              filename: item['file_name'],
-              savedDir: item['saved_dir']))
+              taskId: item[_Args.TASK_ID],
+              status: DownloadTaskStatus._internal(item[_Args.STATUS]),
+              progress: item[_Args.PROGRESS],
+              url: item[_Args.URL],
+              filename: item[_Args.FILE_NAME],
+              savedDir: item[_Args.SAVED_DIR]))
           .toList();
     } on PlatformException catch (e) {
       print(e.message);
@@ -210,12 +221,12 @@ class FlutterDownloader {
       print('Loaded tasks: $result');
       return result
           .map((item) => new DownloadTask(
-              taskId: item['task_id'],
-              status: DownloadTaskStatus._internal(item['status']),
-              progress: item['progress'],
-              url: item['url'],
-              filename: item['file_name'],
-              savedDir: item['saved_dir']))
+              taskId: item[_Args.TASK_ID],
+              status: DownloadTaskStatus._internal(item[_Args.STATUS]),
+              progress: item[_Args.PROGRESS],
+              url: item[_Args.URL],
+              filename: item[_Args.FILE_NAME],
+              savedDir: item[_Args.SAVED_DIR]))
           .toList();
     } on PlatformException catch (e) {
       print(e.message);
@@ -285,7 +296,7 @@ class FlutterDownloader {
   }) async {
     try {
       return await platform.invokeMethod('resume', {
-        'task_id': taskId,
+        _Args.TASK_ID: taskId,
         'requires_storage_not_low': requiresStorageNotLow,
       });
     } on PlatformException catch (e) {
@@ -312,7 +323,7 @@ class FlutterDownloader {
   }) async {
     try {
       return await platform.invokeMethod('retry', {
-        'task_id': taskId,
+        _Args.TASK_ID: taskId,
         'requires_storage_not_low': requiresStorageNotLow,
       });
     } on PlatformException catch (e) {
@@ -335,7 +346,7 @@ class FlutterDownloader {
   static Future<Null> remove({@required String taskId, bool shouldDeleteContent = false}) async {
     try {
       return await platform.invokeMethod('remove',
-          {'task_id': taskId, 'should_delete_content': shouldDeleteContent});
+          {_Args.TASK_ID: taskId, 'should_delete_content': shouldDeleteContent});
     } on PlatformException catch (e) {
       print(e.message);
       return null;
@@ -391,10 +402,12 @@ class FlutterDownloader {
       platform.setMethodCallHandler(null);
       platform.setMethodCallHandler((MethodCall call) {
         if (call.method == 'updateProgress') {
-          String id = call.arguments['task_id'];
-          int status = call.arguments['status'];
-          int process = call.arguments['progress'];
-          callback(id, DownloadTaskStatus._internal(status), process);
+          String id = call.arguments[_Args.TASK_ID];
+          int status = call.arguments[_Args.STATUS];
+          int process = call.arguments[_Args.PROGRESS];
+          int currentLength = call.arguments[_Args.CURRENT_LENGTH];
+          int allLength = call.arguments[_Args.ALL_LENGTH];
+          callback(id, DownloadTaskStatus._internal(status), process,currentLength:currentLength,allLength:allLength);
         }
         return null;
       });

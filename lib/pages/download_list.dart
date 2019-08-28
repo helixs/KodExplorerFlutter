@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kodproject/custom/KBar.dart';
 import 'package:kodproject/life/life_state.dart';
 import 'package:kodproject/plugin/downloader.dart';
+import 'package:kodproject/tools/calc_size.dart';
 
 class DownloadManagerListPage extends StatefulWidget {
   final String _title = "下载管理";
@@ -40,7 +41,7 @@ class DownloadManagerListState extends LifeState<DownloadManagerListPage>
   void _queryList() async {
     List<DownloadTask> tasks = await FlutterDownloader.loadTasks();
     setState(() {
-      _allTasks = tasks;
+      _allTasks = tasks??[];
     });
   }
 
@@ -127,16 +128,6 @@ class DownloadManagerListState extends LifeState<DownloadManagerListPage>
       ),
     );
   }
-
-//  ListView _buildList(int num) {
-//    return ListView.builder(
-//      shrinkWrap: true,
-//      itemBuilder: (BuildContext context, int index) {
-//        return ItemTaskPage();
-//      },
-//      itemCount: num,
-//    );
-//  }
 }
 
 class ItemTaskPage extends StatefulWidget {
@@ -153,6 +144,8 @@ class ItemTaskPage extends StatefulWidget {
 class ItemTaskState extends State<ItemTaskPage> {
   int _progress = 0;
   DownloadTaskStatus _status = DownloadTaskStatus.undefined;
+  int _currentLength = 0;
+  int _allLength = 0;
 
   @override
   void initState() {
@@ -160,11 +153,13 @@ class ItemTaskState extends State<ItemTaskPage> {
     _progress = widget.downloadTask.progress;
     _status = widget.downloadTask.status;
     FlutterDownloader.registerCallback(
-        (String id, DownloadTaskStatus status, int progress) {
+        (String id, DownloadTaskStatus status, int progress,{int currentLength,int allLength}) {
       if (id == widget.downloadTask.taskId) {
         setState(() {
           _progress = progress;
           _status = status;
+          _currentLength = currentLength??0;
+          _allLength = allLength??0;
         });
       }
     });
@@ -224,7 +219,7 @@ class ItemTaskState extends State<ItemTaskPage> {
                     children: <Widget>[
                       Container(
                         width: 60,
-                        height: 60,
+                        height: double.infinity,
                         child: Column(
                           mainAxisSize: MainAxisSize.max,
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -233,20 +228,23 @@ class ItemTaskState extends State<ItemTaskPage> {
                             Spacer(
                               flex: 1,
                             ),
-                            Expanded(flex:2,
-                                child: Icon(
-                                  Icons.play_arrow,
-                                  color: Colors.cyan,
-                                ),),
-
-                            Expanded(flex:2,
-                              child: Text(currentStatus),),
+                            Expanded(
+                              flex: 2,
+                              child: Icon(
+                                Icons.play_arrow,
+                                color: Colors.cyan,
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(currentStatus),
+                            ),
                           ],
                         ),
                       ),
                       Container(
                         width: 5,
-                        height: 60,
+                        height: double.infinity,
                       ),
                       Expanded(
                         child: Column(
@@ -274,10 +272,18 @@ class ItemTaskState extends State<ItemTaskPage> {
                       ),
                       Container(
                           width: 100,
-                          height: 50,
+                          height: double.infinity,
                           child: Stack(
-                            alignment: AlignmentDirectional.center,
-                            children: <Widget>[Text(currentStatus)],
+                            children: <Widget>[
+                              Align(
+                                alignment: Alignment.center,
+                                child: Text("${CalcSize.getSizeToString(_currentLength,false)}/${CalcSize.getSizeToString(_allLength,true)}"),
+                              ),
+                              Align(
+                                alignment: Alignment.bottomCenter,
+                                child: Text(_progress.toString() + "%"),
+                              ),
+                            ],
                           )),
                     ],
                   ),

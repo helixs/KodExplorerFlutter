@@ -30,6 +30,8 @@ class TaskDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, 
                         TaskTableColumns.COLUMN_NAME_URL + " TEXT, " +
                         TaskTableColumns.COLUMN_NAME_STATUS + " INTEGER DEFAULT 0, " +
                         TaskTableColumns.COLUMN_NAME_PROGRESS + " INTEGER DEFAULT 0, " +
+                        TaskTableColumns.COLUMN_NAME_ALL_LENGTH + " INTEGER DEFAULT 0, " +
+                        TaskTableColumns.COLUMN_NAME_CURRENT_LENGTH + " INTEGER DEFAULT 0, " +
                         TaskTableColumns.COLUMN_NAME_FILE_NAME + " TEXT, " +
                         TaskTableColumns.COLUMN_NAME_SAVED_DIR + " TEXT, " +
                         TaskTableColumns.COLUMN_NAME_HEADERS + " TEXT, " +
