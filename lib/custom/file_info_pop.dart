@@ -140,8 +140,7 @@ class _DownloadPathState extends LifeState<_DownloadInfoWidget> {
   final TextEditingController _fileNameController = new TextEditingController();
 
   //下载目录
-  final TextEditingController _localPathController =
-      new TextEditingController();
+  final TextEditingController _localPathController = new TextEditingController();
 
   @override
   void initState() {
@@ -173,7 +172,7 @@ class _DownloadPathState extends LifeState<_DownloadInfoWidget> {
   }
 
   download()async{
-    await FlutterDownloader.enqueue(url: _addressController.text,savedDir:_localPathController.text);
+    await FlutterDownloader.enqueue(url: _addressController.text,savedDir:_localPathController.text,fileName: _fileNameController.text);
     Navigator.pushReplacement(context, MaterialPageRoute(builder:(BuildContext context){
       return DownloadManagerListPage();
     } ));

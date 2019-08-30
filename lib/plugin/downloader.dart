@@ -28,7 +28,13 @@ import 'package:flutter/services.dart';
 /// * `progress`: current progress value of a download task, the value is in
 /// range of 0 and 100
 ///
-typedef void DownloadCallback(String id, DownloadTaskStatus status, int progress,{int currentLength,int allLength});
+
+abstract class DownloadCallback {
+  String getTaskId();
+
+  void downloadCallback(String id, DownloadTaskStatus status, int progress,
+      {int currentLength, int allLength});
+}
 
 ///
 /// A class defines a set of possible statuses of a download task
@@ -57,16 +63,17 @@ class DownloadTaskStatus {
   static const canceled = const DownloadTaskStatus._internal(5);
   static const paused = const DownloadTaskStatus._internal(6);
 }
-class _Args{
-  static const  TASK_ID = "task_id";
-  static const  PROGRESS = "progress";
-  static const  STATUS = "status";
-  static const  URL = "url";
-  static const  FILE_NAME = "file_name";
-  static const  SAVED_DIR = "saved_dir";
-  static const  TIME_CREATED = "time_created";
-  static const  CURRENT_LENGTH = "current_length";
-  static const  ALL_LENGTH = "all_length";
+
+class _Args {
+  static const TASK_ID = "task_id";
+  static const PROGRESS = "progress";
+  static const STATUS = "status";
+  static const URL = "url";
+  static const FILE_NAME = "file_name";
+  static const SAVED_DIR = "saved_dir";
+  static const TIME_CREATED = "time_created";
+  static const CURRENT_LENGTH = "current_length";
+  static const ALL_LENGTH = "all_length";
 }
 
 ///
@@ -87,6 +94,8 @@ class DownloadTask {
   final String url;
   final String filename;
   final String savedDir;
+  final int allLength;
+  final int currentLength;
 
   DownloadTask(
       {this.taskId,
@@ -94,6 +103,8 @@ class DownloadTask {
       this.progress,
       this.url,
       this.filename,
+      this.allLength,
+      this.currentLength,
       this.savedDir});
 
   @override
@@ -138,7 +149,6 @@ class FlutterDownloader {
       bool showNotification = true,
       bool openFileFromNotification = true,
       bool requiresStorageNotLow = true}) async {
-
     assert(Directory(savedDir).existsSync());
 
     StringBuffer headerBuilder = StringBuffer();
@@ -185,6 +195,8 @@ class FlutterDownloader {
               progress: item[_Args.PROGRESS],
               url: item[_Args.URL],
               filename: item[_Args.FILE_NAME],
+              currentLength: item[_Args.CURRENT_LENGTH],
+              allLength: item[_Args.ALL_LENGTH],
               savedDir: item[_Args.SAVED_DIR]))
           .toList();
     } on PlatformException catch (e) {
@@ -343,10 +355,13 @@ class FlutterDownloader {
   /// * `shouldDeleteContent`: if the task is completed, set `true` to let the
   /// plugin remove the downloaded file. The default value is `false`.
   ///
-  static Future<Null> remove({@required String taskId, bool shouldDeleteContent = false}) async {
+  static Future<Null> remove(
+      {@required String taskId, bool shouldDeleteContent = false}) async {
     try {
-      return await platform.invokeMethod('remove',
-          {_Args.TASK_ID: taskId, 'should_delete_content': shouldDeleteContent});
+      return await platform.invokeMethod('remove', {
+        _Args.TASK_ID: taskId,
+        'should_delete_content': shouldDeleteContent
+      });
     } on PlatformException catch (e) {
       print(e.message);
       return null;
@@ -407,7 +422,43 @@ class FlutterDownloader {
           int process = call.arguments[_Args.PROGRESS];
           int currentLength = call.arguments[_Args.CURRENT_LENGTH];
           int allLength = call.arguments[_Args.ALL_LENGTH];
-          callback(id, DownloadTaskStatus._internal(status), process,currentLength:currentLength,allLength:allLength);
+          callback.downloadCallback(id, DownloadTaskStatus._internal(status), process,
+              currentLength: currentLength, allLength: allLength);
+        }
+        return null;
+      });
+    } else {
+      platform.setMethodCallHandler(null);
+    }
+  }
+
+  static Set<DownloadCallback> downloadCallbacks = Set();
+  static removeCall(DownloadCallback callback) {
+    downloadCallbacks.remove(callback);
+  }
+  static addCallBack(DownloadCallback callback) {
+    if (callback != null) {
+      // remove previous setting
+      platform.setMethodCallHandler(null);
+      downloadCallbacks.add(callback);
+      platform.setMethodCallHandler((MethodCall call) {
+        if (call.method == 'updateProgress') {
+          String id = call.arguments[_Args.TASK_ID];
+          int status = call.arguments[_Args.STATUS];
+          int process = call.arguments[_Args.PROGRESS];
+          int currentLength = call.arguments[_Args.CURRENT_LENGTH];
+          int allLength = call.arguments[_Args.ALL_LENGTH];
+          if (downloadCallbacks != null) {
+            Iterator<DownloadCallback> iterator = downloadCallbacks.iterator;
+            while (iterator.moveNext()) {
+              if (iterator.current.getTaskId() == id) {
+                iterator.current.downloadCallback(
+                    id, DownloadTaskStatus._internal(status), process,
+                    currentLength: currentLength, allLength: allLength);
+
+              }
+            }
+          }
         }
         return null;
       });

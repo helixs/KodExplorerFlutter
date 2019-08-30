@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:kodproject/custom/KBar.dart';
 import 'package:kodproject/life/life_state.dart';
@@ -18,32 +20,29 @@ enum _TASK_TAB { DOWNLOADING, DOWNLOADED, ALL }
 class DownloadManagerListState extends LifeState<DownloadManagerListPage>
     with TickerProviderStateMixin {
   TabController _tabController;
+//  List<Tab> _tabs = [];
+//  List<Widget> _tabViews = [];
   static const Map<String, _TASK_TAB> _TABS = {
     "全部": _TASK_TAB.ALL,
     "下载中": _TASK_TAB.DOWNLOADING,
     "已完成": _TASK_TAB.DOWNLOADED
   };
 
-  List<DownloadTask> _allTasks = [];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+//    _tabs = _getTabs();
+//    _tabViews = _getTabViews();
     _tabController.addListener(() {
       var index = _tabController.index;
       var previewIndex = _tabController.previousIndex;
       print('index:$index, preview:$previewIndex');
     });
-    _queryList();
+
   }
 
-  void _queryList() async {
-    List<DownloadTask> tasks = await FlutterDownloader.loadTasks();
-    setState(() {
-      _allTasks = tasks??[];
-    });
-  }
 
   @override
   void dispose() {
@@ -64,25 +63,7 @@ class DownloadManagerListState extends LifeState<DownloadManagerListPage>
     _TABS.forEach((name, tab) {
       safeTabs.add(
         Builder(builder: (BuildContext buildContext) {
-          return new CustomScrollView(
-            key: new PageStorageKey<String>(name),
-            slivers: <Widget>[
-              SliverOverlapInjector(
-                handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
-                    buildContext),
-              ),
-              SliverFixedExtentList(
-                //item高度48像素
-                itemExtent: 80.0,
-                delegate: SliverChildBuilderDelegate(
-                  (BuildContext context, int index) {
-                    return new ItemTaskPage(_allTasks[index]);
-                  },
-                  childCount: _allTasks.length,
-                ),
-              )
-            ],
-          );
+          return _TaskPage();
         }),
       );
     });
@@ -129,6 +110,58 @@ class DownloadManagerListState extends LifeState<DownloadManagerListPage>
     );
   }
 }
+class _TaskPage extends StatefulWidget{
+
+  @override
+  State<StatefulWidget> createState() {
+
+    return TaskPageState();
+  }
+
+}
+
+class TaskPageState extends LifeState<_TaskPage> with AutomaticKeepAliveClientMixin {
+
+  List<DownloadTask> _allTasks = [];
+  void _queryList() async {
+    List<DownloadTask> tasks = await FlutterDownloader.loadTasks();
+    setState(() {
+      _allTasks = tasks??[];
+    });
+  }
+  @override
+  void initState() {
+    super.initState();
+    _queryList();
+
+  }
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return  CustomScrollView(
+      slivers: <Widget>[
+        SliverOverlapInjector(
+          handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
+              context),
+        ),
+        SliverFixedExtentList(
+          //item高度48像素
+          itemExtent: 80.0,
+          delegate: SliverChildBuilderDelegate(
+                (BuildContext context, int index) {
+              return new ItemTaskPage(_allTasks[index]);
+            },
+            childCount: _allTasks.length,
+          ),
+        )
+      ],
+    );
+  }
+
+  @override
+  bool get wantKeepAlive => true;
+
+}
 
 class ItemTaskPage extends StatefulWidget {
   final DownloadTask downloadTask;
@@ -141,28 +174,19 @@ class ItemTaskPage extends StatefulWidget {
   }
 }
 
-class ItemTaskState extends State<ItemTaskPage> {
+class ItemTaskState extends LifeState<ItemTaskPage> implements DownloadCallback{
   int _progress = 0;
   DownloadTaskStatus _status = DownloadTaskStatus.undefined;
   int _currentLength = 0;
   int _allLength = 0;
-
   @override
   void initState() {
     super.initState();
     _progress = widget.downloadTask.progress;
     _status = widget.downloadTask.status;
-    FlutterDownloader.registerCallback(
-        (String id, DownloadTaskStatus status, int progress,{int currentLength,int allLength}) {
-      if (id == widget.downloadTask.taskId) {
-        setState(() {
-          _progress = progress;
-          _status = status;
-          _currentLength = currentLength??0;
-          _allLength = allLength??0;
-        });
-      }
-    });
+    _currentLength = widget.downloadTask.currentLength;
+    _allLength = widget.downloadTask.allLength;
+    FlutterDownloader.addCallBack(this);
   }
 
   String _getStatus(DownloadTaskStatus status, int progress) {
@@ -193,7 +217,18 @@ class ItemTaskState extends State<ItemTaskPage> {
   @override
   Widget build(BuildContext context) {
     String currentStatus = _getStatus(_status, _progress);
-
+    String ratioSizeText ="";
+    if(_status==DownloadTaskStatus.complete){
+      ratioSizeText = CalcSize.getSizeToString(_allLength, true);
+    }else{
+      ratioSizeText =CalcSize.getRatioBySize(_currentLength,_allLength,true);
+    }
+    double linearProgress ;
+    if(_status == DownloadTaskStatus.enqueued){
+      linearProgress = null;
+    }else{
+      linearProgress = _progress*0.01;
+    }
     return Container(
         margin: EdgeInsets.only(bottom: 5),
         child: Card(
@@ -207,7 +242,7 @@ class ItemTaskState extends State<ItemTaskPage> {
                     child: ClipRRect(
                   borderRadius: BorderRadius.all(Radius.circular(5.0)),
                   child: LinearProgressIndicator(
-                    value: _progress * 0.01,
+                    value: linearProgress,
                     backgroundColor: Colors.white,
                     valueColor: AlwaysStoppedAnimation(Colors.blue[100]),
                   ),
@@ -277,7 +312,7 @@ class ItemTaskState extends State<ItemTaskPage> {
                             children: <Widget>[
                               Align(
                                 alignment: Alignment.center,
-                                child: Text("${CalcSize.getSizeToString(_currentLength,false)}/${CalcSize.getSizeToString(_allLength,true)}"),
+                                child: Text(ratioSizeText),
                               ),
                               Align(
                                 alignment: Alignment.bottomCenter,
@@ -290,5 +325,25 @@ class ItemTaskState extends State<ItemTaskPage> {
                 ),
               ],
             )));
+  }
+
+  @override
+  void downloadCallback(String id, DownloadTaskStatus status, int progress, {int currentLength, int allLength}) {
+    setState(() {
+      _progress = progress;
+      _status = status;
+      _currentLength = currentLength??0;
+      _allLength = allLength??0;
+    });
+  }
+  @override
+  void dispose() {
+    super.dispose();
+    FlutterDownloader.removeCall(this);
+  }
+  @override
+  String getTaskId() {
+
+    return widget.downloadTask.taskId;
   }
 }

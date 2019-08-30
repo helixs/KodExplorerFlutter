@@ -84,9 +84,7 @@ class DownloadTaskWorker(private val context: Context, workerParams: WorkerParam
 
     private fun startDownloadFile(url: String, saveDir: String, fileName: String?, headers: String?, isBreakpointDownload: Boolean = false) {
 
-        val startTime = System.currentTimeMillis()
-        var currentUrl = url;
-        var currentURL = URL(currentUrl)
+        var currentUrl = url
         var httpUrlConnection: HttpURLConnection? = null
 
 
@@ -112,7 +110,7 @@ class DownloadTaskWorker(private val context: Context, workerParams: WorkerParam
                 }
 
 
-                currentURL = URL(currentUrl)
+                val currentURL = URL(currentUrl)
                 Log.d(TAG, "Open connection to $url")
                 httpUrlConnection = currentURL.openConnection() as HttpURLConnection
                 httpUrlConnection.also {
@@ -258,7 +256,7 @@ class DownloadTaskWorker(private val context: Context, workerParams: WorkerParam
     }
 
     private fun sendProgress(status: Int, progress: Int,currentLength:Long,allLength:Long) {
-        if (progress == currentProgress) {
+        if (progress == currentProgress&&progress!=100) {
             return
         }
         currentProgress = progress
@@ -302,7 +300,7 @@ class DownloadTaskWorker(private val context: Context, workerParams: WorkerParam
             shouldUpdate = true
             builder.setContentText(if (progress == 0) "已开始" else "下载中")
                     .setProgress(100, progress, progress == 0)
-            sendProgress(TaskStatus.RUNNING, progress,currentLength,allLength)
+
         } else if (status == TaskStatus.CANCELED) {
             shouldUpdate = true
             builder.setContentText("已取消").setProgress(0, 0, false)
@@ -316,12 +314,12 @@ class DownloadTaskWorker(private val context: Context, workerParams: WorkerParam
             shouldUpdate = true
             builder.setContentText("完成").setProgress(0, 0, false)
         }
-
         // Show the notification
         if (shouldUpdate) {
             NotificationManagerCompat.from(context).notify(mPrimaryId
                     ?: getPrimaryId(), builder.build())
         }
+        sendProgress(status, progress,currentLength,allLength)
     }
 
     private fun getPrimaryId(): Int {
