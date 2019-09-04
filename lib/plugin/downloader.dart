@@ -225,11 +225,9 @@ class FlutterDownloader {
   /// FlutterDownloader.loadTasksWithRawQuery(query: 'SELECT * FROM task WHERE status=3');
   /// ```
   ///
-  static Future<List<DownloadTask>> loadTasksWithRawQuery(
-      {@required String query}) async {
+  static Future<List<DownloadTask>> queryRunningTask() async {
     try {
-      List<dynamic> result = await platform
-          .invokeMethod('loadTasksWithRawQuery', {'query': query});
+      List<dynamic> result = await platform.invokeMethod('queryRunningTask');
       print('Loaded tasks: $result');
       return result
           .map((item) => new DownloadTask(
@@ -237,6 +235,29 @@ class FlutterDownloader {
               status: DownloadTaskStatus._internal(item[_Args.STATUS]),
               progress: item[_Args.PROGRESS],
               url: item[_Args.URL],
+              currentLength: item[_Args.CURRENT_LENGTH],
+              allLength: item[_Args.ALL_LENGTH],
+              filename: item[_Args.FILE_NAME],
+              savedDir: item[_Args.SAVED_DIR]))
+          .toList();
+    } on PlatformException catch (e) {
+      print(e.message);
+      return null;
+    }
+  }
+
+  static Future<List<DownloadTask>> queryCompleteTask() async {
+    try {
+      List<dynamic> result = await platform.invokeMethod('queryCompleteTask');
+      print('Loaded tasks: $result');
+      return result
+          .map((item) => new DownloadTask(
+              taskId: item[_Args.TASK_ID],
+              status: DownloadTaskStatus._internal(item[_Args.STATUS]),
+              progress: item[_Args.PROGRESS],
+              url: item[_Args.URL],
+              currentLength: item[_Args.CURRENT_LENGTH],
+              allLength: item[_Args.ALL_LENGTH],
               filename: item[_Args.FILE_NAME],
               savedDir: item[_Args.SAVED_DIR]))
           .toList();
@@ -422,7 +443,8 @@ class FlutterDownloader {
           int process = call.arguments[_Args.PROGRESS];
           int currentLength = call.arguments[_Args.CURRENT_LENGTH];
           int allLength = call.arguments[_Args.ALL_LENGTH];
-          callback.downloadCallback(id, DownloadTaskStatus._internal(status), process,
+          callback.downloadCallback(
+              id, DownloadTaskStatus._internal(status), process,
               currentLength: currentLength, allLength: allLength);
         }
         return null;
@@ -433,9 +455,11 @@ class FlutterDownloader {
   }
 
   static Set<DownloadCallback> downloadCallbacks = Set();
+
   static removeCall(DownloadCallback callback) {
     downloadCallbacks.remove(callback);
   }
+
   static addCallBack(DownloadCallback callback) {
     if (callback != null) {
       // remove previous setting
@@ -455,7 +479,6 @@ class FlutterDownloader {
                 iterator.current.downloadCallback(
                     id, DownloadTaskStatus._internal(status), process,
                     currentLength: currentLength, allLength: allLength);
-
               }
             }
           }

@@ -63,7 +63,7 @@ class DownloadManagerListState extends LifeState<DownloadManagerListPage>
     _TABS.forEach((name, tab) {
       safeTabs.add(
         Builder(builder: (BuildContext buildContext) {
-          return _TaskPage();
+          return _TaskPage(tab);
         }),
       );
     });
@@ -111,6 +111,9 @@ class DownloadManagerListState extends LifeState<DownloadManagerListPage>
   }
 }
 class _TaskPage extends StatefulWidget{
+  final _TASK_TAB _tab;
+
+  const _TaskPage(this._tab,{Key key, }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -123,8 +126,20 @@ class _TaskPage extends StatefulWidget{
 class TaskPageState extends LifeState<_TaskPage> with AutomaticKeepAliveClientMixin {
 
   List<DownloadTask> _allTasks = [];
-  void _queryList() async {
-    List<DownloadTask> tasks = await FlutterDownloader.loadTasks();
+  void _queryList(_TASK_TAB taskTab) async {
+
+    List<DownloadTask> tasks =[];
+    switch(taskTab){
+      case _TASK_TAB.ALL:
+        tasks= await FlutterDownloader.loadTasks();
+        break;
+      case _TASK_TAB.DOWNLOADED:
+        tasks= await FlutterDownloader.queryCompleteTask();
+        break;
+      case _TASK_TAB.DOWNLOADING:
+        tasks= await FlutterDownloader.queryRunningTask();
+        break;
+    }
     setState(() {
       _allTasks = tasks??[];
     });
@@ -132,7 +147,7 @@ class TaskPageState extends LifeState<_TaskPage> with AutomaticKeepAliveClientMi
   @override
   void initState() {
     super.initState();
-    _queryList();
+    _queryList(widget._tab);
 
   }
   @override

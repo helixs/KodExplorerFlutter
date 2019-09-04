@@ -62,8 +62,10 @@ class DownloadPlugin private constructor(val context: Context, messenger: Binary
             enqueue(call, result)
         } else if (call.method == "loadTasks") {
             loadTasks(call, result)
-        } else if (call.method == "loadTasksWithRawQuery") {
-            loadTasksWithRawQuery(call, result)
+        } else if (call.method == "queryRunningTask") {
+            queryRunningTask(call, result)
+        } else if (call.method == "queryCompleteTask") {
+            queryCompleteTask(call, result)
         } else if (call.method == "cancel") {
             cancel(call, result)
         } else if (call.method == "cancelAll") {
@@ -208,9 +210,26 @@ class DownloadPlugin private constructor(val context: Context, messenger: Binary
         result.success(null)
     }
 
-    private fun loadTasksWithRawQuery(call: MethodCall, result: MethodChannel.Result) {
-        val query = call.argument<String>("query")
-        val tasks = TaskDao.loadTasksWithRawQuery(dbHelper,query!!)
+    private fun queryRunningTask(call: MethodCall, result: MethodChannel.Result) {
+        val tasks = TaskDao.queryAllTaskOfStatus(dbHelper,DownloadStatus.RUNNING)
+        val array = ArrayList<Map<String, *>>()
+        for (task in tasks) {
+            val item = HashMap<String, Any>()
+            item["task_id"] = task.taskId
+            item["status"] = task.status
+            item["progress"] = task.progress
+            item["url"] = task.url
+            item["file_name"] = task.filename
+            item["saved_dir"] = task.savedDir
+            item["time_created"] = task.timeCreated
+            item["current_length"] = task.currentLength
+            item["all_length"] = task.allLength
+            array.add(item)
+        }
+        result.success(array)
+    }
+    private fun queryCompleteTask(call: MethodCall, result: MethodChannel.Result) {
+        val tasks = TaskDao.queryAllTaskOfStatus(dbHelper,DownloadStatus.COMPLETE)
         val array = ArrayList<Map<String, *>>()
         for (task in tasks) {
             val item = HashMap<String, Any>()
