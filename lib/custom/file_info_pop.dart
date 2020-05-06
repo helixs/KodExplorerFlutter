@@ -156,7 +156,7 @@ class _DownloadPathState extends LifeState<_DownloadInfoWidget> {
   }
 
   openLocalStorageList() async {
-    bool checked = await checkLocalPermission(PermissionGroup.storage);
+    bool checked = await checkLocalPermission(Permission.storage);
     if (checked) {
       var directory =
           await Navigator.push(context, MaterialPageRoute(builder: (context) {
@@ -167,7 +167,7 @@ class _DownloadPathState extends LifeState<_DownloadInfoWidget> {
         KStorage.setDefaultDownloadPath(directory.path);
       }
     } else {
-      openAppSetting();
+      openAppSettings();
     }
   }
 

@@ -22,7 +22,7 @@ import io.flutter.util.PathUtils.getFilesDir
 import me.xmcf.kodproject.R
 import org.json.JSONException
 import org.json.JSONObject
-import vn.hunghd.flutterdownloader.DownloadStatus
+import me.xmcf.kodproject.flutterchannel.download.DownloadStatus
 import java.io.*
 import java.net.URLDecoder
 

@@ -10,7 +10,7 @@ import androidx.work.*
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
-import vn.hunghd.flutterdownloader.DownloadStatus
+import me.xmcf.kodproject.flutterchannel.download.DownloadStatus
 import java.io.File
 import java.util.*
 import java.util.concurrent.TimeUnit

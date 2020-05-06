@@ -59,7 +59,7 @@ void main() {
 //    print(value);
 //  });
   countStream(5).listen((data)=>print(data));
-  countStream(5)
+  countStream(5);
 //  StreamController controller = StreamController();
 //  controller.sink.add(123);
 //  controller.sink.add("xyz");

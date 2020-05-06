@@ -59,7 +59,7 @@ class FilePathRes {
 
 class FilePathResUserspace {
   int sizeUse; //用户空间大小(单位GB,0则不限制)
-  int sizeMax; //用户已使用空间大小(单位B)
+  String sizeMax; //用户已使用空间大小(单位B)
 
   FilePathResUserspace({this.sizeUse, this.sizeMax});
 
