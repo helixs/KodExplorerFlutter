@@ -1,39 +1,79 @@
-class Person{
+import 'dart:async';
+
+class Person {
   String name;
   num age;
-  Person(this.name,this.age);
-  printInfo(){
+
+  Person(this.name, this.age);
+
+  printInfo() {
     print('${this.name}----${this.age}');
   }
-  void run(){
+
+  void run() {
     print("Person Run");
   }
 }
 
 class A {
-  String info="this is A";
-  void printA(){
+  String info = "this is A";
+
+  void printA() {
     print("A");
   }
-  void run(){
+
+  void run() {
     print("A Run");
   }
 }
 
 class B {
-  void printB(){
+  void printB() {
     print("B");
   }
-  void run(){
+
+  void run() {
     print("B Run");
   }
 }
 
-class C extends Person with B,A{
+class C extends Person with B, A {
   C(String name, num age) : super(name, age);
 }
 
-void main(){
+Future<int> sumStream(Stream<int> stream) async {
+  var sum = 0;
+  await for (var value in stream) {
+    sum += value;
+  }
+  return sum;
+}
+Stream<int> countStream(int to) async* {
+  for (int i = 1; i <= to; i++) {
+    yield i;
+  }
+}
+void main() {
+//  var aa = sumStream(Stream.fromIterable([1, 2, 3]));
+//  aa.then((value) {
+//    print(value);
+//  });
+  countStream(5).listen((data)=>print(data));
+  countStream(5)
+//  StreamController controller = StreamController();
+//  controller.sink.add(123);
+//  controller.sink.add("xyz");
+
+//创建一条处理int类型的流
+//  StreamController<int> numController = StreamController();
+//  numController.sink.add(123);
+//
+//  StreamSubscription subscription =
+//      controller.stream.listen((data) => print("$data"));
+//
+//  subscription.cancel();
+//
+//  controller.sink.add(123);
 //  var c=new C('张三',20);
 //  c.printInfo();
 //   c.printB();
@@ -56,15 +96,14 @@ void main(){
 //var bb = sdwada?:"1";
 }
 
-
-class BBQ{
-  BBQ(String qq){
+class BBQ {
+  BBQ(String qq) {
     print("BBQ");
   }
 }
-class BBQS extends BBQ{
-  BBQS(String qq) : super(qq){
+
+class BBQS extends BBQ {
+  BBQS(String qq) : super(qq) {
     print("BBQS");
   }
-  
 }

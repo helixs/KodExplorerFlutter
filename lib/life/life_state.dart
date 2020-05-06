@@ -18,6 +18,15 @@ abstract class LifeState<T extends StatefulWidget> extends State<T>
 
 
   }
+  @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
+  }
+  @override
+  void didUpdateWidget(T oldWidget) {
+    super.didUpdateWidget(oldWidget);
+  }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
